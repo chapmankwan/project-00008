@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+:root {
+  --background: var(--color-mono-800);
+  --foreground: var(--color-mint-50);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-lavender-50: #f9f7fc;
+  --color-lavender-100: #f0eafd;
+  --color-lavender-200: #e0d3fa;
+  --color-lavender-300: #cbb5f5;
+  --color-lavender-400: #b89ef0;
+  --color-lavender-500: #a27ae3;
+  --color-lavender-600: #8e64c9;
+  --color-lavender-700: #774fa6;
+  --color-lavender-800: #5d3d80;
+  --color-lavender-900: #3f2957;
+  --color-lavender-950: #27193b;
+
+  --color-mint-50: #f6fcfa;
+  --color-mint-100: #e2f9f4;
+  --color-mint-200: #c3f0e5;
+  --color-mint-300: #a0e1d5;
+  --color-mint-400: #7ad0c3;
+  --color-mint-500: #55bbae;
+  --color-mint-600: #3da299;
+  --color-mint-700: #2f807a;
+  --color-mint-800: #25655f;
+  --color-mint-900: #1b4641;
+  --color-mint-950: #102d29;
+
+  --color-mono-50:  #f8f8f8;
+  --color-mono-100: #e5e5e5;
+  --color-mono-200: #c4c4c4;
+  --color-mono-300: #a3a3a3;
+  --color-mono-400: #828282;
+  --color-mono-500: #646464;
+  --color-mono-600: #4b4b4b;
+  --color-mono-700: #353535;
+  --color-mono-800: #222222;
+  --color-mono-900: #141414;
+  --color-mono-950: #0a0a0a;
+
+  --color-blush-50: #fff8fa;
+  --color-blush-100: #ffeaf0;
+  --color-blush-200: #ffd3df;
+  --color-blush-300: #fbb8cb;
+  --color-blush-400: #f89cb6;
+  --color-blush-500: #f27fa0;
+  --color-blush-600: #db5f89;
+  --color-blush-700: #b5486d;
+  --color-blush-800: #8f3653;
+  --color-blush-900: #642638;
+  --color-blush-950: #3f151f;
+  
+  --color-pale-50: #fffcf2;
+  --color-pale-100: #fff6d7;
+  --color-pale-200: #ffeead;
+  --color-pale-300: #ffe17f;
+  --color-pale-400: #ffd456;
+  --color-pale-500: #ffbf29;
+  --color-pale-600: #d99f1e;
+  --color-pale-700: #b37f16;
+  --color-pale-800: #8f620f;
+  --color-pale-900: #6a4709;
+  --color-pale-950: #422d05;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: var(--color-mono-800);
+    --foreground: var(--color-mint-50);
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  /* font-family: Arial, Helvetica, sans-serif; */
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+
+}
+
+@layer utilities {
+  .scrollbar-soft {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148,163,184,0.4) transparent;
+  }
+
+  .scrollbar-soft::-webkit-scrollbar {
+    width: 0.25rem; /* w-1 */
+  }
+
+  .scrollbar-soft::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-soft::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background-color: rgba(148,163,184,0.4); /* mono-400/40 */
+    transition: background-color 200ms ease-out;
+  }
+
+  .scrollbar-soft::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(148,163,184,0.6); /* mono-400/60 */
+  }
+}
