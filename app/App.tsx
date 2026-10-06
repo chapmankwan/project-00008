@@ -2,14 +2,14 @@
 
 import { type SubmitEvent, useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, put, seedIfEmpty, type TableName } from "@/lib/db";
+import { db, put, seedExercises, type TableName } from "@/lib/db";
 
 import { startSync } from "@/lib/sync";
 import { useOnline } from "@/app/utilities";
 
 import { field, ghost, primary } from "@/components/ui";
 
-import { SelectorTab } from "@/components";
+import { SelectorTab, WorkoutTiles } from "@/components";
 
 type View = { kind: "home" | "workouts" | "sessions" } | { kind: "template"; id: string } | { kind: "session"; id: string };
 interface HomeProps {
@@ -24,7 +24,7 @@ export default function App() {
     const home = () => setView({ kind: "home" });
 
     useEffect(() => {
-        void seedIfEmpty();
+        void seedExercises();
         return startSync();
     }, []);
 
@@ -40,15 +40,17 @@ export default function App() {
     };
 
     return (
-        <main className="mx-auto flex min-h-dvh w-full flex-col p-4">
-            <header className="py-2">
+        <main className="relative mx-auto flex h-dvh w-full flex-col overflow-hidden p-4">
+            <header className="shrink-0 pb-4">
                 <h1 className="text-2xl font-semibold">minifridge</h1>
                 <p role="status" className="text-xs tracking-tighter text-slate-400">
                     <span className={online ? "text-green-400" : "text-red-400"}>{online ? "online" : "offline"}</span>, {pending} unsynced
                 </p>
             </header>
-            { renderView() }
-            <footer className="mt-auto py-2 items-center">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[calc(7rem+env(safe-area-inset-bottom))]">
+                {renderView()}
+            </div>
+            <footer className="absolute inset-x-0 bottom-0 z-10 items-center px-4 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-1">
                 <SelectorTab 
                     selectedTab={view.kind}
                     setSelectedTab={(tab) => setView({ kind: tab })}
@@ -72,33 +74,43 @@ export default function App() {
         }
 
         return (
-            <div className="flex flex-col items-center max-w-3/4 w-full gap-4">
-                <ul>
+            <div className="flex w-full flex-col gap-4 px-5">
+                <ul className="flex flex-col gap-4 overflow-y-visible">
                     <li>
-                        <h3 aria-label="workout-1">DAY 3 - Legs & Shoulders</h3>
-                        <div className="grid grid-cols-3 gap-2 text-xs text-mono-600">
-                            <span>Time </span>
-                            <span>Volume </span>
-                            <span>Records </span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 text-xs text-mono-300">
-                            <span>1h 55min</span>
-                            <span>52,470 lbs</span>
-                            <span>6</span>
-                        </div>
+                        <WorkoutTiles label="DAY 1 - Heavy Legs" />
                     </li>
                     <li>
-                        <h3 aria-label="workout-1">DAY 2 - Chest & Back</h3>
-                        <div className="grid grid-cols-3 gap-2 text-xs text-mono-600">
-                            <span>Time </span>
-                            <span>Volume </span>
-                            <span>Records </span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 text-xs text-mono-300">
-                            <span>1h 30min</span>
-                            <span>45,200 lbs</span>
-                            <span>5</span>
-                        </div>
+                        <WorkoutTiles label="DAY 2 - Chest & Back" />
+                    </li>
+                    <li>
+                        <WorkoutTiles label="DAY 3 - Legs & Shoulders" />
+                    </li>
+                    <li>
+                        <WorkoutTiles label="DAY 4 - Upper" />
+                    </li>
+                    <li>
+                        <WorkoutTiles label="DAY 1 - Heavy Legs" />
+                    </li>
+                    <li>
+                        <WorkoutTiles label="DAY 2 - Chest & Back" />
+                    </li>
+                    <li>
+                        <WorkoutTiles label="DAY 3 - Legs & Shoulders" />
+                    </li>
+                    <li>
+                        <WorkoutTiles label="DAY 4 - Upper" />
+                    </li>
+                    <li>
+                        <WorkoutTiles label="DAY 1 - Heavy Legs" />
+                    </li>
+                    <li>
+                        <WorkoutTiles label="DAY 2 - Chest & Back" />
+                    </li>
+                    <li>
+                        <WorkoutTiles label="DAY 3 - Legs & Shoulders" />
+                    </li>
+                    <li>
+                        <WorkoutTiles label="DAY 4 - Upper" />
                     </li>
                 </ul>
             </div>

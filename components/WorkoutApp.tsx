@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, put, seedIfEmpty, startSession } from "@/lib/db";
+import { db, put, startSession } from "@/lib/db";
 import { startSync } from "@/lib/sync";
 import TemplateView from "./TemplateView";
 import SessionView from "./SessionView";
@@ -32,7 +32,6 @@ export default function WorkoutApp() {
   const home = () => setView({ kind: "home" });
 
   useEffect(() => {
-    void seedIfEmpty();
     return startSync();
   }, []);
 

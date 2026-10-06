@@ -1,0 +1,438 @@
+{
+    "strength": [
+        {
+            "id": "barbell-back-squat-high-bar",
+            "name": "Barbell Back Squat",
+            "variation": "High bar",
+            "description": "Squat with the bar resting on the upper traps, giving an upright torso and heavy quadriceps emphasis.",
+            "primary_muscles": ["Quadriceps", "Glutes"],
+            "secondary_muscles": ["Hamstrings", "Adductors", "Lower Back", "Abdominals"],
+            "equipment": "Barbell"
+        },
+        {
+            "id": "barbell-back-squat-low-bar",
+            "name": "Barbell Back Squat",
+            "variation": "Low bar",
+            "description": "Squat with the bar across the rear delts, leaning the torso forward to load the hips more.",
+            "primary_muscles": ["Glutes", "Quadriceps"],
+            "secondary_muscles": ["Hamstrings", "Adductors", "Lower Back"],
+            "equipment": "Barbell"
+        },
+        {
+            "id": "front-squat",
+            "name": "Front Squat",
+            "variation": null,
+            "description": "Squat with the bar racked on the front shoulders, demanding an upright torso and strong quadriceps.",
+            "primary_muscles": ["Quadriceps"],
+            "secondary_muscles": ["Glutes", "Abdominals", "Upper Back", "Lower Back"],
+            "equipment": "Barbell"
+        },
+        {
+            "id": "goblet-squat",
+            "name": "Goblet Squat",
+            "variation": null,
+            "description": "Squat while holding a dumbbell or kettlebell at the chest. A good entry point for learning squat mechanics.",
+            "primary_muscles": ["Quadriceps", "Glutes"],
+            "secondary_muscles": ["Adductors", "Abdominals", "Upper Back"],
+            "equipment": "Dumbbell"
+        },
+        {
+            "id": "leg-press",
+            "name": "Leg Press",
+            "variation": null,
+            "description": "Press a weighted sled away with the legs while seated, loading the legs with little demand on the back.",
+            "primary_muscles": ["Quadriceps", "Glutes"],
+            "secondary_muscles": ["Hamstrings", "Adductors"],
+            "equipment": "Machine"
+        },
+        {
+            "id": "hack-squat",
+            "name": "Hack Squat",
+            "variation": null,
+            "description": "Machine squat with the back supported against an angled pad, isolating the quadriceps.",
+            "primary_muscles": ["Quadriceps"],
+            "secondary_muscles": ["Glutes", "Adductors"],
+            "equipment": "Machine"
+        },
+        {
+            "id": "bulgarian-split-squat",
+            "name": "Bulgarian Split Squat",
+            "variation": null,
+            "description": "Single-leg squat with the rear foot elevated on a bench, building leg strength and balance.",
+            "primary_muscles": ["Quadriceps", "Glutes"],
+            "secondary_muscles": ["Hamstrings", "Adductors"],
+            "equipment": "Dumbbell"
+        },
+        {
+            "id": "walking-lunge",
+            "name": "Walking Lunge",
+            "variation": null,
+            "description": "Alternating forward lunges that travel across the floor while holding dumbbells.",
+            "primary_muscles": ["Quadriceps", "Glutes"],
+            "secondary_muscles": ["Hamstrings", "Adductors"],
+            "equipment": "Dumbbell"
+        },
+        {
+            "id": "romanian-deadlift",
+            "name": "Romanian Deadlift",
+            "variation": null,
+            "description": "Hip hinge with nearly straight legs that lowers the bar to mid-shin, stretching and loading the hamstrings.",
+            "primary_muscles": ["Hamstrings", "Glutes"],
+            "secondary_muscles": ["Lower Back", "Forearms"],
+            "equipment": "Barbell"
+        },
+        {
+            "id": "leg-extension",
+            "name": "Leg Extension",
+            "variation": null,
+            "description": "Seated machine movement that straightens the knees to isolate the quadriceps.",
+            "primary_muscles": ["Quadriceps"],
+            "secondary_muscles": [],
+            "equipment": "Machine"
+        },
+        {
+            "id": "lying-leg-curl",
+            "name": "Lying Leg Curl",
+            "variation": null,
+            "description": "Face-down machine movement that bends the knees against resistance to isolate the hamstrings.",
+            "primary_muscles": ["Hamstrings"],
+            "secondary_muscles": ["Calves"],
+            "equipment": "Machine"
+        },
+        {
+            "id": "seated-leg-curl",
+            "name": "Seated Leg Curl",
+            "variation": null,
+            "description": "Seated machine curl that isolates the hamstrings with the hips held in a flexed position.",
+            "primary_muscles": ["Hamstrings"],
+            "secondary_muscles": ["Calves"],
+            "equipment": "Machine"
+        },
+        {
+            "id": "barbell-hip-thrust",
+            "name": "Barbell Hip Thrust",
+            "variation": null,
+            "description": "Drive the hips up with the upper back on a bench and a barbell across the lap, targeting the glutes.",
+            "primary_muscles": ["Glutes"],
+            "secondary_muscles": ["Hamstrings", "Adductors"],
+            "equipment": "Barbell"
+        },
+        {
+            "id": "standing-calf-raise",
+            "name": "Standing Calf Raise",
+            "variation": null,
+            "description": "Rise onto the toes with the knees straight under load to build the calf muscles.",
+            "primary_muscles": ["Calves"],
+            "secondary_muscles": [],
+            "equipment": "Machine"
+        },
+        {
+            "id": "seated-calf-raise",
+            "name": "Seated Calf Raise",
+            "variation": null,
+            "description": "Calf raise with bent knees, which shifts more work to the soleus muscle under the main calf.",
+            "primary_muscles": ["Calves"],
+            "secondary_muscles": [],
+            "equipment": "Machine"
+        },
+        {
+            "id": "calf-press",
+            "name": "Calf Press",
+            "variation": null,
+            "description": "Push the platform away with the balls of the feet on a leg press machine, working the calves.",
+            "primary_muscles": ["Calves"],
+            "secondary_muscles": [],
+            "equipment": "Machine"
+        },
+        {
+            "id": "hip-abduction-machine",
+            "name": "Hip Abduction",
+            "variation": null,
+            "description": "Seated machine movement that pushes the thighs outward to work the outer hips.",
+            "primary_muscles": ["Abductors"],
+            "secondary_muscles": ["Glutes"],
+            "equipment": "Machine"
+        },
+        {
+            "id": "conventional-deadlift",
+            "name": "Deadlift",
+            "variation": "Conventional",
+            "description": "Lift a barbell from the floor to standing with the feet hip-width apart. A full-body pulling movement.",
+            "primary_muscles": ["Hamstrings", "Glutes", "Lower Back"],
+            "secondary_muscles": ["Quadriceps", "Lats", "Trapezius", "Forearms"],
+            "equipment": "Barbell"
+        },
+        {
+            "id": "barbell-row",
+            "name": "Barbell Row",
+            "variation": "Bent-over",
+            "description": "Pull a barbell to the lower ribs from a hinged position to build the back.",
+            "primary_muscles": ["Lats", "Upper Back"],
+            "secondary_muscles": ["Biceps", "Rear Deltoids", "Lower Back", "Forearms"],
+            "equipment": "Barbell"
+        },
+        {
+            "id": "pull-up",
+            "name": "Pull-Up",
+            "variation": "Overhand grip",
+            "description": "Hang from a bar and pull the chin over it with palms facing away.",
+            "primary_muscles": ["Lats"],
+            "secondary_muscles": ["Biceps", "Upper Back", "Forearms"],
+            "equipment": "Bodyweight"
+        },
+        {
+            "id": "chin-up",
+            "name": "Chin-Up",
+            "variation": "Underhand grip",
+            "description": "Pull-up with palms facing you, which brings the biceps in more.",
+            "primary_muscles": ["Lats", "Biceps"],
+            "secondary_muscles": ["Upper Back", "Forearms"],
+            "equipment": "Bodyweight"
+        },
+        {
+            "id": "lat-pulldown",
+            "name": "Lat Pulldown",
+            "variation": null,
+            "description": "Pull a cable bar down to the upper chest while seated. A scalable alternative to the pull-up.",
+            "primary_muscles": ["Lats"],
+            "secondary_muscles": ["Biceps", "Upper Back", "Rear Deltoids"],
+            "equipment": "Cable"
+        },
+        {
+            "id": "seated-cable-row",
+            "name": "Seated Cable Row",
+            "variation": null,
+            "description": "Pull a cable handle to the midsection while seated, squeezing the shoulder blades together.",
+            "primary_muscles": ["Upper Back", "Lats"],
+            "secondary_muscles": ["Biceps", "Rear Deltoids", "Lower Back"],
+            "equipment": "Cable"
+        },
+        {
+            "id": "one-arm-dumbbell-row",
+            "name": "One-Arm Dumbbell Row",
+            "variation": null,
+            "description": "Row a dumbbell to the hip with one hand braced on a bench, training each side of the back separately.",
+            "primary_muscles": ["Lats"],
+            "secondary_muscles": ["Upper Back", "Biceps", "Rear Deltoids", "Forearms"],
+            "equipment": "Dumbbell"
+        },
+        {
+            "id": "face-pull",
+            "name": "Face Pull",
+            "variation": null,
+            "description": "Pull a rope attachment toward the face with elbows high, strengthening the rear shoulders and upper back.",
+            "primary_muscles": ["Rear Deltoids", "Upper Back"],
+            "secondary_muscles": ["Trapezius"],
+            "equipment": "Cable"
+        },
+        {
+            "id": "barbell-shrug",
+            "name": "Barbell Shrug",
+            "variation": null,
+            "description": "Raise the shoulders toward the ears while holding a loaded barbell to build the upper traps.",
+            "primary_muscles": ["Trapezius"],
+            "secondary_muscles": ["Forearms", "Upper Back"],
+            "equipment": "Barbell"
+        },
+        {
+            "id": "barbell-bench-press",
+            "name": "Barbell Bench Press",
+            "variation": "Flat",
+            "description": "Press a barbell from the chest while lying on a flat bench. A staple upper-body strength lift.",
+            "primary_muscles": ["Chest"],
+            "secondary_muscles": ["Triceps", "Front Deltoids"],
+            "equipment": "Barbell"
+        },
+        {
+            "id": "dumbbell-bench-press",
+            "name": "Dumbbell Bench Press",
+            "variation": "Flat",
+            "description": "Bench press with dumbbells, allowing a longer range of motion and independent arm work.",
+            "primary_muscles": ["Chest"],
+            "secondary_muscles": ["Triceps", "Front Deltoids"],
+            "equipment": "Dumbbell"
+        },
+        {
+            "id": "incline-dumbbell-press",
+            "name": "Incline Dumbbell Press",
+            "variation": "Incline",
+            "description": "Press dumbbells on an inclined bench to emphasize the upper chest.",
+            "primary_muscles": ["Chest", "Front Deltoids"],
+            "secondary_muscles": ["Triceps"],
+            "equipment": "Dumbbell"
+        },
+        {
+            "id": "chest-dip",
+            "name": "Dip",
+            "variation": "Chest-focused",
+            "description": "Lower and press the body between parallel bars while leaning forward to bias the chest.",
+            "primary_muscles": ["Chest", "Triceps"],
+            "secondary_muscles": ["Front Deltoids"],
+            "equipment": "Bodyweight"
+        },
+        {
+            "id": "cable-fly",
+            "name": "Cable Fly",
+            "variation": null,
+            "description": "Bring the hands together in an arc using cables, keeping tension on the chest throughout.",
+            "primary_muscles": ["Chest"],
+            "secondary_muscles": ["Front Deltoids"],
+            "equipment": "Cable"
+        },
+        {
+            "id": "push-up",
+            "name": "Push-Up",
+            "variation": null,
+            "description": "Lower and press the body from the floor with a rigid plank position.",
+            "primary_muscles": ["Chest"],
+            "secondary_muscles": ["Triceps", "Front Deltoids", "Abdominals"],
+            "equipment": "Bodyweight"
+        },
+        {
+            "id": "barbell-overhead-press",
+            "name": "Overhead Press",
+            "variation": "Standing barbell",
+            "description": "Press a barbell from the shoulders to overhead while standing.",
+            "primary_muscles": ["Front Deltoids", "Side Deltoids"],
+            "secondary_muscles": ["Triceps", "Trapezius", "Abdominals"],
+            "equipment": "Barbell"
+        },
+        {
+            "id": "dumbbell-lateral-raise",
+            "name": "Lateral Raise",
+            "variation": null,
+            "description": "Raise dumbbells out to the sides to shoulder height to build shoulder width.",
+            "primary_muscles": ["Side Deltoids"],
+            "secondary_muscles": ["Trapezius"],
+            "equipment": "Dumbbell"
+        },
+        {
+            "id": "dumbbell-reverse-fly",
+            "name": "Reverse Fly",
+            "variation": "Bent-over",
+            "description": "Raise dumbbells out to the sides from a hinged position to target the rear shoulders.",
+            "primary_muscles": ["Rear Deltoids"],
+            "secondary_muscles": ["Upper Back", "Trapezius"],
+            "equipment": "Dumbbell"
+        },
+        {
+            "id": "barbell-biceps-curl",
+            "name": "Biceps Curl",
+            "variation": "Barbell",
+            "description": "Curl a barbell from thigh level to the shoulders with the elbows fixed at the sides.",
+            "primary_muscles": ["Biceps"],
+            "secondary_muscles": ["Forearms"],
+            "equipment": "Barbell"
+        },
+        {
+            "id": "hammer-curl",
+            "name": "Hammer Curl",
+            "variation": null,
+            "description": "Curl dumbbells with palms facing each other, working the biceps and the forearm muscles beneath.",
+            "primary_muscles": ["Biceps"],
+            "secondary_muscles": ["Forearms"],
+            "equipment": "Dumbbell"
+        },
+        {
+            "id": "triceps-pushdown",
+            "name": "Triceps Pushdown",
+            "variation": null,
+            "description": "Press a cable attachment down by extending the elbows to isolate the triceps.",
+            "primary_muscles": ["Triceps"],
+            "secondary_muscles": [],
+            "equipment": "Cable"
+        },
+        {
+            "id": "overhead-triceps-extension",
+            "name": "Overhead Triceps Extension",
+            "variation": null,
+            "description": "Extend the elbows with a dumbbell held behind the head, stretching the long head of the triceps.",
+            "primary_muscles": ["Triceps"],
+            "secondary_muscles": [],
+            "equipment": "Dumbbell"
+        },
+        {
+            "id": "close-grip-bench-press",
+            "name": "Close-Grip Bench Press",
+            "variation": null,
+            "description": "Bench press with hands shoulder-width apart, shifting the load toward the triceps.",
+            "primary_muscles": ["Triceps", "Chest"],
+            "secondary_muscles": ["Front Deltoids"],
+            "equipment": "Barbell"
+        },
+        {
+            "id": "plank",
+            "name": "Plank",
+            "variation": null,
+            "description": "Hold a rigid straight-body position on the forearms and toes to build core endurance.",
+            "primary_muscles": ["Abdominals"],
+            "secondary_muscles": ["Obliques", "Lower Back"],
+            "equipment": "Bodyweight"
+        },
+        {
+            "id": "hanging-leg-raise",
+            "name": "Hanging Leg Raise",
+            "variation": null,
+            "description": "Hang from a bar and lift the legs to hip height or higher, working the lower abdominals.",
+            "primary_muscles": ["Abdominals", "Hip Flexors"],
+            "secondary_muscles": ["Obliques", "Forearms"],
+            "equipment": "Bodyweight"
+        },
+        {
+            "id": "cable-crunch",
+            "name": "Cable Crunch",
+            "variation": null,
+            "description": "Kneel and curl the torso downward against a cable's resistance to load the abdominals.",
+            "primary_muscles": ["Abdominals"],
+            "secondary_muscles": ["Obliques"],
+            "equipment": "Cable"
+        },
+        {
+            "id": "ab-wheel",
+            "name": "Ab Wheel Rollout",
+            "variation": null,
+            "description": "Roll a wheel forward and back while keeping the core tight, challenging the abdominals and lower back.",
+            "primary_muscles": ["Abdominals", "Lower Back"],
+            "secondary_muscles": ["Obliques", "Shoulders"],
+            "equipment": "Ab Wheel"
+        }
+    ],
+    "cardio": [
+        {
+            "id": "treadmill-running",
+            "name": "Treadmill Running",
+            "variation": null,
+            "description": "Run on a treadmill at a steady pace or interval training.",
+            "primary_muscles": ["Cardiovascular System"],
+            "secondary_muscles": [],
+            "equipment": "Treadmill"
+        },
+        {
+            "id": "treadmill-walking",
+            "name": "Treadmill Walking",
+            "variation": null,
+            "description": "Walk on a treadmill at a steady pace to improve cardiovascular health.",
+            "primary_muscles": ["Cardiovascular System"],
+            "secondary_muscles": [],
+            "equipment": "Treadmill"
+        },
+        {
+            "id": "stationary-cycling",
+            "name": "Stationary Cycling",
+            "variation": null,
+            "description": "Pedal on a stationary bike for cardiovascular endurance.",
+            "primary_muscles": ["Cardiovascular System"],
+            "secondary_muscles": [],
+            "equipment": "Stationary Bike"
+        },
+        {
+            "id": "rowing-machine",
+            "name": "Rowing Machine",
+            "variation": null,
+            "description": "Simulate rowing with a machine to work the entire body and improve cardiovascular fitness.",
+            "primary_muscles": ["Cardiovascular System", "Back", "Legs"],
+            "secondary_muscles": ["Arms", "Core"],
+            "equipment": "Rowing Machine"
+        }
+    ]
+}
