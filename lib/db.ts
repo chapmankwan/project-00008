@@ -5,7 +5,9 @@ export type TableName = "exercises" | "templates" | "templateExercises" | "sessi
 type Rec = { id: string } & Record<string, unknown>;
 
 export type Exercise = { id: string; name: string; muscle: string; updatedAt: number };
-export type Template = { id: string; name: string; updatedAt: number };
+export type Template = {
+    exercises: any; id: string; name: string; updatedAt: number 
+};
 // A template is a plan: which exercises, with target sets and reps. No weights; those belong to logs.
 export type TemplateExercise = {
   id: string; templateId: string; exerciseId: string; position: number; sets: number; reps: number; updatedAt: number;
@@ -33,6 +35,10 @@ class WorkoutDB extends Dexie {
     });
     this.version(2).stores({
       exercises: "id, name", templates: "id", templateExercises: "id, templateId", outbox: "++seq",
+      sessions: "id, startedAt", sessionSets: "id, sessionId, exerciseId",
+    });
+    this.version(3).stores({
+      exercises: "id, name", templates: "id, name", templateExercises: "id, templateId", outbox: "++seq",
       sessions: "id, startedAt", sessionSets: "id, sessionId, exerciseId",
     });
   }

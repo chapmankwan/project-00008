@@ -1,4 +1,4 @@
-# Workout PWA boilerplate
+# minifridge
 
 Next.js (App Router) + Tailwind v4 + Dexie (IndexedDB) + Serwist (service worker).
 
