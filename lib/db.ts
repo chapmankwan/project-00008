@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
+import exerciseCatalog from "./exercises.json";
 
 export type TableName = "exercises" | "templates" | "templateExercises" | "sessions" | "sessionSets";
 type Rec = { id: string } & Record<string, unknown>;
@@ -38,6 +39,19 @@ class WorkoutDB extends Dexie {
 }
 
 export const db = new WorkoutDB();
+
+interface ExerciseCatalogEntry {
+  id: string;
+  name: string;
+  variation: string | null;
+  description: string;
+  primary_muscles: string[];
+  secondary_muscles: string[];
+  equipment: string;
+}
+
+type ExerciseCatalog = Record<string, ExerciseCatalogEntry[]>;
+const catalog: ExerciseCatalog = exerciseCatalog;
 
 // Every write also enqueues outbox items, atomically, so nothing is lost offline.
 export async function putMany(table: TableName, records: Rec[]) {
@@ -110,16 +124,20 @@ export async function removeSession(id: string) {
   });
 }
 
-const SEED: [string, string][] = [
-  ["Squat", "Legs"], ["Leg press", "Legs"], ["Calf press", "Legs"], ["Romanian deadlift", "Legs"],
-  ["Bench press", "Chest"], ["Overhead press", "Shoulders"], ["Barbell row", "Back"], ["Pull-up", "Back"],
-  ["Deadlift", "Back"], ["Biceps curl", "Arms"], ["Triceps pushdown", "Arms"], ["Plank", "Core"],
-];
-
-// Deterministic ids so every device agrees on what "Squat" is. Not queued for sync: shared reference data.
-export async function seedIfEmpty() {
-  if ((await db.exercises.count()) > 0) return;
-  await db.exercises.bulkPut(
-    SEED.map(([name, muscle]) => ({ id: `seed-${name.toLowerCase().replace(/\s+/g, "-")}`, name, muscle, updatedAt: 0 })),
+// Stable catalog ids keep references consistent across devices. Catalog data is bundled locally
+// for offline use and is not queued for sync. Add missing entries without overwriting user data.
+export async function seedExercises() {
+  const records: Exercise[] = Object.values(catalog).flat().map((entry) => ({
+    id: entry.id,
+    name: entry.variation ? `${entry.name} (${entry.variation})` : entry.name,
+    muscle: entry.primary_muscles.join(", "),
+    updatedAt: 0,
+  }));
+  const existing = new Set(
+    (await db.exercises.bulkGet(records.map(({ id }) => id)))
+      .filter((exercise): exercise is Exercise => exercise !== undefined)
+      .map(({ id }) => id),
   );
+  const missing = records.filter(({ id }) => !existing.has(id));
+  if (missing.length > 0) await db.exercises.bulkAdd(missing);
 }
