@@ -17,6 +17,15 @@ interface HomeProps {
     onOpenSession: (id: string) => void;
 };
 
+const MAX_DISPLAYED_WORKOUTS = 10;
+
+const temporaryWorkouts = [
+    { id: "day-1-heavy-legs", label: "DAY 1 - Heavy Legs" },
+    { id: "day-2-chest-back", label: "DAY 2 - Chest & Back" },
+    { id: "day-3-leg-shoulders", label: "DAY 3 - Legs & Shoulders" },
+    { id: "day-4-upper", label: "DAY 4 - Upper" },
+];
+
 export default function App() {
     const online = useOnline();
     const [view, setView] = useState<View>({ kind: "home" });
@@ -76,42 +85,11 @@ export default function App() {
         return (
             <div className="flex w-full flex-col gap-4 px-5">
                 <ul className="flex flex-col gap-4 overflow-y-visible">
-                    <li>
-                        <WorkoutTiles label="DAY 1 - Heavy Legs" />
-                    </li>
-                    <li>
-                        <WorkoutTiles label="DAY 2 - Chest & Back" />
-                    </li>
-                    <li>
-                        <WorkoutTiles label="DAY 3 - Legs & Shoulders" />
-                    </li>
-                    <li>
-                        <WorkoutTiles label="DAY 4 - Upper" />
-                    </li>
-                    <li>
-                        <WorkoutTiles label="DAY 1 - Heavy Legs" />
-                    </li>
-                    <li>
-                        <WorkoutTiles label="DAY 2 - Chest & Back" />
-                    </li>
-                    <li>
-                        <WorkoutTiles label="DAY 3 - Legs & Shoulders" />
-                    </li>
-                    <li>
-                        <WorkoutTiles label="DAY 4 - Upper" />
-                    </li>
-                    <li>
-                        <WorkoutTiles label="DAY 1 - Heavy Legs" />
-                    </li>
-                    <li>
-                        <WorkoutTiles label="DAY 2 - Chest & Back" />
-                    </li>
-                    <li>
-                        <WorkoutTiles label="DAY 3 - Legs & Shoulders" />
-                    </li>
-                    <li>
-                        <WorkoutTiles label="DAY 4 - Upper" />
-                    </li>
+                    {temporaryWorkouts.slice(0,MAX_DISPLAYED_WORKOUTS).map((workout) => (
+                        <li key={workout.id}>
+                            <WorkoutTiles label={workout.label} />
+                        </li>
+                    ))}
                 </ul>
             </div>
         )
