@@ -4,7 +4,7 @@ import exerciseCatalog from "./exercises.json";
 export type TableName = "exercises" | "templates" | "templateExercises" | "sessions" | "sessionSets";
 type Rec = { id: string } & Record<string, unknown>;
 
-export type Exercise = { id: string; name: string; muscle: string; updatedAt: number };
+export type Exercise = { id: string; name: string; muscle: string; updatedAt?: number };
 export type Template = {
     exercises: any; id: string; name: string; updatedAt: number 
 };

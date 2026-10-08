@@ -13,6 +13,7 @@ export const WorkoutView = ({ onBack }: { id: string; onBack: () => void }) => {
     const [routineName, setRoutineName] = useState("");
     const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
 
+
     const exerciseNames = new Map(exercises.map((exercise) => [exercise.id, exercise.name]));
 
     async function createRoutine(event: FormEvent<HTMLFormElement>) {
@@ -24,7 +25,9 @@ export const WorkoutView = ({ onBack }: { id: string; onBack: () => void }) => {
         await put("templates", { id, name });
         setRoutineName("");
         setEditingTemplateId(id);
-    }
+    };
+
+
 
     if (editingTemplateId) {
         return (
@@ -33,7 +36,13 @@ export const WorkoutView = ({ onBack }: { id: string; onBack: () => void }) => {
                 onBack={() => setEditingTemplateId(null)}
             />
         );
-    }
+    };
+
+    const onClickEmptyRoutine = () => {
+        const id = crypto.randomUUID();
+        void put("templates", { id, name: "New Routine" });
+        setEditingTemplateId(id);
+    };
 
     return (
         <section className="space-y-5 px-1">
@@ -41,6 +50,10 @@ export const WorkoutView = ({ onBack }: { id: string; onBack: () => void }) => {
                 <h2 className="text-lg font-semibold">Routines</h2>
                 <p className="mt-1 text-sm text-mono-300">Create a routine and choose the exercises you want to train.</p>
             </header>
+
+            <button className={ghost} onClick={onClickEmptyRoutine}>
+                Begin empty routine
+            </button>
 
             <form onSubmit={createRoutine} className="flex gap-2">
                 <label className="min-w-0 flex-1">
