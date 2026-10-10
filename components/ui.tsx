@@ -9,7 +9,7 @@ export function Num({ label, value, step = 1, hideLabel = false, onCommit }: {
   label: string; value: number; step?: number; hideLabel?: boolean; onCommit: (v: number) => void;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-xs text-slate-400">
+    <label className="flex flex-col gap-1 text-xs text-mono-400">
       <span className={hideLabel ? "sr-only" : ""}>{label}</span>
       <input
         type="number" inputMode="decimal" min={0} step={step} defaultValue={value} className={field}

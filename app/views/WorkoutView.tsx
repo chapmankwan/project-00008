@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, put } from "@/lib/db";
 import TemplateView from "@/components/TemplateView";
-import { field, ghost, primary } from "@/components/ui";
+import { field, ghost, primary, simpleBtn } from "@/components/ui";
 
 export const WorkoutView = ({ onBack }: { id: string; onBack: () => void }) => {
     const templates = useLiveQuery(() => db.templates.orderBy("name").toArray(), [], []);
@@ -51,7 +51,7 @@ export const WorkoutView = ({ onBack }: { id: string; onBack: () => void }) => {
                 <p className="mt-1 text-sm text-mono-300">Create a routine and choose the exercises you want to train.</p>
             </header>
 
-            <button className={ghost} onClick={onClickEmptyRoutine}>
+            <button className={simpleBtn} onClick={onClickEmptyRoutine}>
                 Begin empty routine
             </button>
 
@@ -90,7 +90,7 @@ export const WorkoutView = ({ onBack }: { id: string; onBack: () => void }) => {
                                 <button
                                     type="button"
                                     onClick={() => setEditingTemplateId(template.id)}
-                                    className="flex w-full items-center justify-between gap-3 rounded-2xl border border-mono-500/30 bg-mono-700/70 p-4 text-left transition-colors hover:bg-mono-600/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
+                                    className="cursor-pointer flex w-full items-center justify-between gap-3 rounded-2xl border border-mono-500/30 bg-mono-700/70 p-4 text-left transition-colors hover:bg-mono-600/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
                                 >
                                     <span className="min-w-0">
                                         <span className="block truncate font-medium">{template.name}</span>
@@ -110,7 +110,7 @@ export const WorkoutView = ({ onBack }: { id: string; onBack: () => void }) => {
                 </ul>
             )}
 
-            <button type="button" className={`${ghost} w-full`} onClick={onBack}>
+            <button type="button" className={`${simpleBtn} w-full`} onClick={onBack}>
                 Back to home
             </button>
         </section>

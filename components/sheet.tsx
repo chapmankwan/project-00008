@@ -47,8 +47,7 @@ export const Sheet =({
         setExercises(data ?? []);
     }, [data]);
 
-    const handleClose = (force = false) => {
-        // If not forced, and the form has been modified, confirm discard
+    const handleClose = () => {
         // Animate out first, then unmount
         setIsVisible(false);
         setTimeout(onClose, 300); // match transition duration
@@ -109,17 +108,13 @@ export const Sheet =({
                     <h3 className="cursor-default">Add exercises</h3>
                     <button type="button" disabled={selectedExercises.length === 0} onClick={onSubmitHandler} className="cursor-pointer text-mint-500 disabled:cursor-not-allowed disabled:opacity-50">Add {selectedExercises.length}</button>
                 </div>
-
-
             
                 <form onSubmit={onSubmitHandler} className="shrink-0 p-6 pt-0 flex flex-col gap-3">
-                    {/* <label className="flex gap-1">
-                        <span className="sr-only z-55">Add custom exercise</span>
-                        <input type="text" name="text" placeholder="Enter exercise name" className="rounded-lg border border-mono-500/30 bg-mono-700/60 p-3 text-sm text-mono-200 focus:outline-none focus:ring-2 focus:ring-lavender-300" />
-                    </label>
-                    <button type="submit">create</button> */}
-
-                    <input className="touch-manipulation rounded-lg border border-mono-500/30 bg-mono-700/60 p-3 text-sm text-mono-200 focus:outline-none focus:ring-2 focus:ring-lavender-300" value={customExercise} onChange={(e) => setCustomExercise(e.target.value)} placeholder="Not in the list? Create one" />
+                    <input required className="touch-manipulation rounded-lg border border-mono-500/30 bg-mono-700/60 p-3 text-sm text-mono-200 focus:outline-none focus:ring-2 focus:ring-lavender-300" value={customExercise} onChange={(e) => setCustomExercise(e.target.value)} placeholder="Not in the list? Create one" />
+                    <div className="flex gap-2">
+                        <input required className="w-full touch-manipulation rounded-lg border border-mono-500/30 bg-mono-700/60 p-3 text-sm text-mono-200 focus:outline-none focus:ring-2 focus:ring-lavender-300" value={customExercise} onChange={(e) => setCustomExercise(e.target.value)} placeholder="Primary muscle(s)" />
+                        <input required className="w-full touch-manipulation rounded-lg border border-mono-500/30 bg-mono-700/60 p-3 text-sm text-mono-200 focus:outline-none focus:ring-2 focus:ring-lavender-300" value={customExercise} onChange={(e) => setCustomExercise(e.target.value)} placeholder="Secondary muscle(s)" />
+                    </div>
                     <button type="button" className="touch-manipulation cursor-pointer rounded-lg px-3 py-1 bg-lavender-400/50 text-mono-200 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-400" onClick={addCustomExercise}>
                         Create
                     </button>

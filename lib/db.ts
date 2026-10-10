@@ -5,12 +5,18 @@ export type TableName = "exercises" | "templates" | "templateExercises" | "sessi
 type Rec = { id: string } & Record<string, unknown>;
 
 export type Exercise = { id: string; name: string; muscle: string; updatedAt?: number };
-export type Template = {
-    exercises: any; id: string; name: string; updatedAt: number 
-};
-// A template is a plan: which exercises, with target sets and reps. No weights; those belong to logs.
+export type Template = { id: string; name: string; updatedAt: number };
+export type TemplateTargetSet = { weight: number; reps: number };
+// A template exercise stores each set's target weight and reps; legacy scalar fields are kept readable.
 export type TemplateExercise = {
-  id: string; templateId: string; exerciseId: string; position: number; sets: number; reps: number; updatedAt: number;
+  id: string;
+  templateId: string;
+  exerciseId: string;
+  position: number;
+  targetSets?: TemplateTargetSet[];
+  sets?: number;
+  reps?: number;
+  updatedAt: number;
 };
 // A session is one logged workout, started from a template. Name is copied so history survives template edits or deletion.
 export type Session = { id: string; templateId: string; name: string; startedAt: number; updatedAt: number };
@@ -109,11 +115,16 @@ export async function startSession(templateId: string): Promise<string> {
     const sets: Rec[] = [];
     for (const en of entries) {
       const last = await lastSets(en.exerciseId);
-      for (let i = 0; i < en.sets; i++) {
-        const prev = last[i] ?? last[last.length - 1];
+      const targetSets = en.targetSets?.length
+        ? en.targetSets
+        : Array.from({ length: Math.max(1, en.sets ?? 3) }, () => ({ weight: 0, reps: en.reps ?? 10 }));
+      for (const [index, target] of targetSets.entries()) {
+        const previousSet = last[index] ?? last[last.length - 1];
         sets.push({
-          id: crypto.randomUUID(), sessionId, exerciseId: en.exerciseId, position: en.position, setNumber: i + 1,
-          weight: prev?.weight ?? 0, reps: prev?.reps ?? en.reps, done: false,
+          id: crypto.randomUUID(), sessionId, exerciseId: en.exerciseId, position: en.position, setNumber: index + 1,
+          weight: target.weight > 0 ? target.weight : previousSet?.weight ?? 0,
+          reps: target.reps || previousSet?.reps || 10,
+          done: false,
         });
       }
     }
