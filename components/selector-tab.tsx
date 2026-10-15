@@ -7,8 +7,8 @@ interface SelectorTabProps {
 
 const selectorList = [
     { id: "home", label: "Home", icon: "home" },
-    { id: "workouts", label: "Workouts", icon: "workouts" },
-    { id: "sessions", label: "Sessions", icon: "sessions" },
+    { id: "workout", label: "Workout", icon: "workout" },
+    { id: "profile", label: "Profile", icon: "profile" },
 ] as const;
 type TabId = (typeof selectorList)[number]["id"];
 
@@ -16,13 +16,12 @@ export const SelectorTab = ({
     selectedTab,
     setSelectedTab,
 }: SelectorTabProps) => {
-    const activeTab = selectedTab === "session" ? "sessions" : selectedTab;
 
     return (
         <nav aria-label="Main navigation" className="flex justify-center py-2">
             <ul className="grid w-full max-w-xs grid-cols-3 gap-2 rounded-4xl border border-mono-500/30 bg-mono-700/80 p-2 shadow-lg shadow-mono-950/20">
                 {selectorList.map(({ id, label, icon }) => {
-                    const isSelected = activeTab === id;
+                    const isSelected = selectedTab === id;
 
                     return (
                         <li key={id} className="min-w-0">
@@ -49,8 +48,8 @@ export const SelectorTab = ({
                                     className="size-5 shrink-0"
                                 >
                                     {icon === "home" && <><path d="m3 10 9-7 9 7" /><path d="M5 9v11h14V9M9 20v-6h6v6" /></>}
-                                    {icon === "workouts" && <><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11" /></>}
-                                    {icon === "sessions" && <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>}
+                                    {icon === "workout" && <><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11" /></>}
+                                    {icon === "profile" && <><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></>}
                                 </svg>
                                 <span className="max-sm:hidden max-w-full truncate">{label}</span>
                             </button>

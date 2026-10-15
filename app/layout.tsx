@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   applicationName: "Workouts",
-  title: { default: "Workout Tracker", template: "%s - Workouts" },
+  title: { default: "minifridge", template: "%s - Workouts" },
   description: "Plan workouts and log weight, sets and reps, online or offline.",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Workouts" },
   icons: {

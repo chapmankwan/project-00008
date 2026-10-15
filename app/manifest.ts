@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Workout Tracker",
+    name: "minifridge",
     short_name: "Workouts",
     description: "Plan workouts and log weight, sets and reps, online or offline.",
     start_url: "/",

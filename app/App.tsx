@@ -11,7 +11,10 @@ import { field, ghost, primary } from "@/components/ui";
 
 import { SelectorTab, WorkoutTiles } from "@/components";
 
-type View = { kind: "home" | "workouts" | "sessions" } | { kind: "template"; id: string } | { kind: "session"; id: string };
+import { ProfileView, WorkoutView } from "@/app/views";
+import SessionView from "@/components/SessionView";
+
+type View = { kind: "home" | "workout" | "profile" } | { kind: "template"; id: string } | { kind: "session"; id: string };
 interface HomeProps {
     onOpenTemplate: (id: string) => void;
     onOpenSession: (id: string) => void;
@@ -39,10 +42,12 @@ export default function App() {
 
     const renderView = () => {
         switch (view.kind) {
-            case "template":
-                return null
-            case "session":
-                return null;
+            case "workout":
+                return <WorkoutView id={view.kind} onBack={home} />;
+            case "profile":
+                return <ProfileView />;
+            // case "session":
+            //     return <SessionView id={view.kind} onBack={home} />;
             default:
                 return <Home onOpenTemplate={(id) => setView({ kind: "template", id })} onOpenSession={(id) => setView({ kind: "session", id })} />;
         }
