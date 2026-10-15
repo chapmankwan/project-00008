@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { db, put, type Exercise } from "@/lib/db";
 
 import clsx from "clsx";
+import { simpleBtn, simpleInput } from "./ui";
 
 interface SheetModel {
     onClose: () => void;
@@ -17,9 +18,17 @@ export const Sheet =({
     data,
 }: SheetModel) => {
     const [isVisible, setIsVisible] = useState(false);
-    const [customExercise, setCustomExercise] = useState("");
     const [exercises, setExercises] = useState<Exercise[]>(data || []);
     const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+    
+    // Search/Filter Experience
+    const [searchOrFilter, setSearchOrFilter] = useState("");
+
+    // Custom experience
+    const [isCreatingExercise, setIsCreatingExercise] = useState(false);
+    const [customExercise, setCustomExercise] = useState("");
+    const [primaryMuscles, setPrimaryMuscles] = useState<string[]>([]);
+    const [secondaryMuscles, setSecondaryMuscles] = useState<string[]>([]);
 
     useEffect(() => {
         // Animate in after mount
@@ -46,6 +55,12 @@ export const Sheet =({
     useEffect(() => {
         setExercises(data ?? []);
     }, [data]);
+
+    const normalizedSearch = searchOrFilter.trim().toLocaleLowerCase();
+    const filteredExercises = exercises.filter((exercise) =>
+        exercise.name.toLocaleLowerCase().includes(normalizedSearch)
+        || exercise.muscle.toLocaleLowerCase().includes(normalizedSearch),
+    );
 
     const handleClose = () => {
         // Animate out first, then unmount
@@ -106,23 +121,57 @@ export const Sheet =({
                 <div className="flex shrink-0 items-center justify-between p-6">
                     <button onClick={() => handleClose()} className="cursor-pointer text-blush-500">Cancel</button>
                     <h3 className="cursor-default">Add exercises</h3>
-                    <button type="button" disabled={selectedExercises.length === 0} onClick={onSubmitHandler} className="cursor-pointer text-mint-500 disabled:cursor-not-allowed disabled:opacity-50">Add {selectedExercises.length}</button>
+                    <button type="button" disabled={selectedExercises.length === 0} onClick={onSubmitHandler} className="cursor-pointer text-mint-500 disabled:cursor-not-allowed disabled:opacity-50">Add {selectedExercises.length > 0 && `(${selectedExercises.length})`}</button>
                 </div>
-            
-                <form onSubmit={onSubmitHandler} className="shrink-0 p-6 pt-0 flex flex-col gap-3">
-                    <input required className="touch-manipulation rounded-lg border border-mono-500/30 bg-mono-700/60 p-3 text-sm text-mono-200 focus:outline-none focus:ring-2 focus:ring-lavender-300" value={customExercise} onChange={(e) => setCustomExercise(e.target.value)} placeholder="Not in the list? Create one" />
-                    <div className="flex gap-2">
-                        <input required className="w-full touch-manipulation rounded-lg border border-mono-500/30 bg-mono-700/60 p-3 text-sm text-mono-200 focus:outline-none focus:ring-2 focus:ring-lavender-300" value={customExercise} onChange={(e) => setCustomExercise(e.target.value)} placeholder="Primary muscle(s)" />
-                        <input required className="w-full touch-manipulation rounded-lg border border-mono-500/30 bg-mono-700/60 p-3 text-sm text-mono-200 focus:outline-none focus:ring-2 focus:ring-lavender-300" value={customExercise} onChange={(e) => setCustomExercise(e.target.value)} placeholder="Secondary muscle(s)" />
-                    </div>
-                    <button type="button" className="touch-manipulation cursor-pointer rounded-lg px-3 py-1 bg-lavender-400/50 text-mono-200 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-400" onClick={addCustomExercise}>
-                        Create
+
+                <div className="flex gap-2">
+                    <input required className="w-full ml-6 mb-6 touch-manipulation rounded-lg border border-mono-500/30 bg-mono-700/60 p-3 text-sm text-mono-200 focus:outline-none focus:ring-2 focus:ring-lavender-300" value={searchOrFilter} onChange={e => setSearchOrFilter(e.target.value)} placeholder="Search/Filter" />
+                    <button
+                        type="button"
+                        aria-label="Search exercises"
+                        className="grid mr-6 size-11 shrink-0 cursor-pointer place-items-center rounded-full text-mono-300 bg-mono-700/60 hover:bg-mono-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
+                    >
+                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="size-5">
+                            <circle cx="10.8" cy="10.8" r="6.8" />
+                            <path d="m16 16 4.2 4.2" />
+                        </svg>
                     </button>
-                </form>
+                </div>
+
+                {
+                    !isCreatingExercise &&
+                    <button className={clsx(simpleBtn, "mx-6 mb-6")} onClick={() => setIsCreatingExercise(!isCreatingExercise)}>
+                        create an exercise
+                    </button>
+                }
+                {
+                    isCreatingExercise &&
+                    <form onSubmit={onSubmitHandler} className="shrink-0 p-6 pt-0 flex flex-col gap-3">
+                        <input required className="touch-manipulation rounded-lg border border-mono-500/30 bg-mono-700/60 p-3 text-sm text-mono-200 focus:outline-none focus:ring-2 focus:ring-lavender-300" value={customExercise} onChange={(e) => setCustomExercise(e.target.value)} placeholder="Not in the list? Create one" />
+                        <div className="flex gap-2">
+                            <input 
+                                required 
+                                className={simpleInput} 
+                                value={primaryMuscles} 
+                                onChange={(e) => setPrimaryMuscles([...primaryMuscles, e.target.value])} placeholder="Primary muscle(s)" />
+                            <input 
+                                required 
+                                className={simpleInput} 
+                                value={secondaryMuscles} 
+                                onChange={(e) => setSecondaryMuscles([...secondaryMuscles, e.target.value])} placeholder="Secondary muscle(s)" />
+                        </div>
+                        <div className="flex gap-2">
+                            <button type="button" className={simpleBtn} onClick={addCustomExercise}>
+                                Create
+                            </button>
+                            <button className={simpleBtn} onClick={() => setIsCreatingExercise(false)}>Close</button>
+                        </div>
+                    </form>
+                }
 
                 <form onSubmit={onSubmitHandler} className="min-h-0 flex-1 overflow-y-auto p-6 pt-0 flex flex-col gap-3">
                     <ul className="flex flex-col">
-                        {exercises.map((exercise) => (
+                        {filteredExercises.map((exercise) => (
                             <li key={exercise.id} className="touch-manipulation first:rounded-t-lg last:rounded-b-lg border-b border-mono-500/30 last:border-b-0 bg-mono-700/60 p-3">
                                 <label className="flex min-h-8 cursor-pointer touch-manipulation items-center gap-3">
                                     <input
@@ -138,6 +187,11 @@ export const Sheet =({
                             </li>
                         ))}
                     </ul>
+                    {filteredExercises.length === 0 && (
+                        <p className="py-4 text-center text-sm text-mono-400">
+                            No exercises match “{searchOrFilter}”.
+                        </p>
+                    )}
                 </form>
                 
             </div>

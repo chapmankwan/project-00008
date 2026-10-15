@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, put } from "@/lib/db";
 import TemplateView from "@/components/TemplateView";
-import { field, ghost, primary, simpleBtn } from "@/components/ui";
+import { field, simpleBtn } from "@/components/ui";
 
 export const WorkoutView = ({ onBack }: { id: string; onBack: () => void }) => {
     const templates = useLiveQuery(() => db.templates.orderBy("name").toArray(), [], []);
@@ -12,7 +12,6 @@ export const WorkoutView = ({ onBack }: { id: string; onBack: () => void }) => {
     const exercises = useLiveQuery(() => db.exercises.toArray(), [], []);
     const [routineName, setRoutineName] = useState("");
     const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
-
 
     const exerciseNames = new Map(exercises.map((exercise) => [exercise.id, exercise.name]));
 
@@ -66,7 +65,7 @@ export const WorkoutView = ({ onBack }: { id: string; onBack: () => void }) => {
                         required
                     />
                 </label>
-                <button type="submit" className={primary}>Create</button>
+                <button type="submit" className={simpleBtn}>Create</button>
             </form>
 
             {templates.length === 0 ? (
