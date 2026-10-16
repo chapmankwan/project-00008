@@ -1,9 +1,30 @@
-export const WorkoutTiles = ({ label }: { label: string }) => {
+interface WorkoutTilesProps {
+    label: string;
+    startedAt: number;
+    durationSeconds?: number;
+    totalVolume?: number;
+    recordsBroken?: number;
+    onClick: () => void;
+}
+
+function formatDuration(durationSeconds?: number) {
+    if (durationSeconds === undefined) return "—";
+    const minutes = Math.floor(durationSeconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return hours > 0 ? `${hours}h ${remainingMinutes}m` : `${minutes}m`;
+}
+
+export const WorkoutTiles = ({ label, startedAt, durationSeconds, totalVolume, recordsBroken, onClick }: WorkoutTilesProps) => {
     return (
-        <button className="flex flex-col cursor-pointer w-full gap-2 rounded-lg border border-mono-500/30 bg-mono-700/80 p-4 text-left shadow-lg shadow-mono-950/20">
+        <button onClick={onClick} className="flex flex-col cursor-pointer w-full gap-2 
+            rounded-lg border border-mono-500/30 bg-mono-700/80 p-4 
+            hover:bg-mono-700/60
+            text-left shadow-lg shadow-mono-950/20"
+        >
             <h3 aria-label="workout-1" className="text-sm font-semibold">{label}</h3>
             <p className="text-xs text-mono-400">
-                Date: 5 October 2026
+                {new Date(startedAt).toLocaleDateString()}
             </p>
             
             <div className="grid grid-cols-3 gap-2 text-xs text-lavender-300/50">
@@ -12,10 +33,10 @@ export const WorkoutTiles = ({ label }: { label: string }) => {
                 <span>Records</span>
             </div>
             <div className="grid grid-cols-3 gap-2 text-sm text-mono-200">
-                <span>1h 55min</span>
-                <span>52,470 lbs</span>
+                <span>{formatDuration(durationSeconds)}</span>
+                <span>{totalVolume === undefined ? "—" : `${totalVolume.toLocaleString()} lbs`}</span>
                 <span className="inline-flex items-center gap-1">
-                    6
+                    {recordsBroken ?? "—"}
                     <svg
                         aria-hidden="true"
                         viewBox="0 0 24 24"

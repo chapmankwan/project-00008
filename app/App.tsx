@@ -2,17 +2,19 @@
 
 import { type SubmitEvent, useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, put, seedExercises, type TableName } from "@/lib/db";
+import { db, put, seedExercises } from "@/lib/db";
 
 import { startSync } from "@/lib/sync";
 import { useOnline } from "@/app/utilities";
 
-import { field, ghost, primary } from "@/components/ui";
+import { field, ghost, primary, simpleBtn } from "@/components/ui";
 
-import { SelectorTab, WorkoutTiles } from "@/components";
+import { ActiveSession, SelectorTab, WorkoutTiles } from "@/components";
 
 import { ProfileView, WorkoutView } from "@/app/views";
+import TemplateView from "@/components/TemplateView";
 import SessionView from "@/components/SessionView";
+import clsx from "clsx";
 
 type View = { kind: "home" | "workout" | "profile" } | { kind: "template"; id: string } | { kind: "session"; id: string };
 interface HomeProps {
@@ -33,6 +35,13 @@ export default function App() {
     const online = useOnline();
     const [view, setView] = useState<View>({ kind: "home" });
     const pending = useLiveQuery(() => db.outbox.count(), [], 0);
+    const activeSession = useLiveQuery(
+        async () => (await db.sessions.toArray())
+            .filter((session) => session.status === "active")
+            .sort((a, b) => b.startedAt - a.startedAt)[0] ?? null,
+        [],
+        null,
+    );
     const home = () => setView({ kind: "home" });
 
     useEffect(() => {
@@ -43,11 +52,25 @@ export default function App() {
     const renderView = () => {
         switch (view.kind) {
             case "workout":
-                return <WorkoutView id={view.kind} onBack={home} />;
+                return (
+                    <WorkoutView
+                        id={view.kind}
+                        onBack={home}
+                        onStartSession={(id) => setView({ kind: "session", id })}
+                    />
+                );
             case "profile":
                 return <ProfileView />;
-            // case "session":
-            //     return <SessionView id={view.kind} onBack={home} />;
+            case "template":
+                return (
+                    <TemplateView
+                        id={view.id}
+                        onBack={home}
+                        onStartSession={(id) => setView({ kind: "session", id })}
+                    />
+                );
+            case "session":
+                return <SessionView id={view.id} onBack={home} />;
             default:
                 return <Home onOpenTemplate={(id) => setView({ kind: "template", id })} onOpenSession={(id) => setView({ kind: "session", id })} />;
         }
@@ -55,11 +78,17 @@ export default function App() {
 
     return (
         <main className="relative mx-auto flex h-dvh w-full flex-col overflow-hidden p-4">
-            <header className="shrink-0 pb-4">
-                <h1 className="text-2xl font-semibold">minifridge</h1>
-                <p role="status" className="text-xs tracking-tighter text-slate-400">
-                    <span className={online ? "text-green-400" : "text-red-400"}>{online ? "online" : "offline"}</span>, {pending} unsynced
-                </p>
+            <header className="flex shrink-0 items-center justify-between gap-3 pb-3">
+                <div className="min-w-0">
+                    <h1 className="text-md font-semibold">minifridge</h1>
+                    <p role="status" className="text-xs tracking-tighter text-slate-400">
+                        <span className={online ? "text-green-400" : "text-red-400"}>{online ? "online" : "offline"}</span>, {pending} unsynced
+                    </p>
+                </div>
+                { 
+                    activeSession &&                
+                    <ActiveSession setView={() => setView({ kind: "session", id: activeSession.id })} />
+                }
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[calc(7rem+env(safe-area-inset-bottom))]">
                 {renderView()}
@@ -72,30 +101,44 @@ export default function App() {
                 
             </footer>
         </main>
-    )
+    );
 
     function Home({ onOpenTemplate,onOpenSession }: HomeProps) {
-        const templates = useLiveQuery(() => db.templates.toArray(), [], []);
         const sessions = useLiveQuery(() => db.sessions.orderBy("startedAt").reverse().toArray(), [], []);
-        const [name, setName] = useState("");
-
-        async function add(e: SubmitEvent) {
-            e.preventDefault();
-            const n = name.trim();
-            if (!n) return;
-            await put("templates", { id: crypto.randomUUID(), name: n });
-            setName("");
-        }
 
         return (
             <div className="flex w-full flex-col gap-4 px-5">
-                <ul className="flex flex-col gap-4 overflow-y-visible">
-                    {temporaryWorkouts.slice(0,MAX_DISPLAYED_WORKOUTS).map((workout) => (
-                        <li key={workout.id}>
-                            <WorkoutTiles label={workout.label} />
-                        </li>
-                    ))}
-                </ul>
+                <h2 className="font-semibold text-xs uppercase tracking-tighter">History</h2>
+                {
+                    sessions.length > 0 ?
+                    <ul className="flex flex-col gap-4 overflow-y-visible">
+                        {sessions.slice(0,MAX_DISPLAYED_WORKOUTS).map((workout) => (
+
+                            <li key={workout.id}>
+                                <WorkoutTiles
+                                    label={workout.name}
+                                    startedAt={workout.startedAt}
+                                    durationSeconds={workout.durationSeconds}
+                                    totalVolume={workout.totalVolume}
+                                    recordsBroken={workout.recordsBroken}
+                                    onClick={() => onOpenSession(workout.id)}
+                                />
+                            </li>
+                        ))}
+                    </ul>
+
+                    :
+                    
+                    <div className="flex flex-col items-center gap-4">
+                        <p className="text-sm">No workouts completed yet</p>
+                        <button 
+                            className={clsx(simpleBtn, "w-full")}
+                            onClick={() => setView({ kind: "workout" })}
+                        >
+                            Start a routine
+                        </button>
+                    </div>
+                }
             </div>
         )
     }

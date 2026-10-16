@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, patch, put, putMany, remove, type TemplateExercise, type TemplateTargetSet } from "@/lib/db";
+import { db, patch, put, putMany, remove, startSession, type TemplateExercise, type TemplateTargetSet } from "@/lib/db";
 import { Num, field, ghost, primary, simpleBtn } from "./ui";
 import { Sheet } from "./sheet";
 
@@ -17,7 +17,11 @@ function getTargetSets(entry: TemplateExercise): TemplateTargetSet[] {
   }));
 }
 
-export default function TemplateView({ id, onBack }: { id: string; onBack: () => void }) {
+export default function TemplateView({ id, onBack, onStartSession }: {
+  id: string;
+  onBack: () => void;
+  onStartSession: (sessionId: string) => void;
+}) {
   const template = useLiveQuery(() => db.templates.get(id), [id]);
   const entries = useLiveQuery(() => db.templateExercises.where("templateId").equals(id).sortBy("position"), [id], []);
   const exercises = useLiveQuery(() => db.exercises.orderBy("name").toArray(), [], []);
@@ -52,6 +56,11 @@ export default function TemplateView({ id, onBack }: { id: string; onBack: () =>
     onBack();
   };
 
+  async function startWorkout() {
+    const sessionId = await startSession(id);
+    onStartSession(sessionId);
+  }
+
   return (
     <section className="mt-4 space-y-4 px-1 overflow-hidden">
       <div className="flex items-center justify-between gap-2">
@@ -65,6 +74,15 @@ export default function TemplateView({ id, onBack }: { id: string; onBack: () =>
           </svg>
         </button>
       </div>
+
+      <button
+        type="button"
+        className={clsx(simpleBtn, "w-full disabled:border-0 disabled:text-mono-700 cursor-not-allowed")}
+        disabled={entries.length === 0}
+        onClick={() => void startWorkout()}
+      >
+        Start workout
+      </button>
 
       <button className={clsx(simpleBtn, "w-full")} onClick={() => setIsSheetOpen(true)}>
         Add Exercises

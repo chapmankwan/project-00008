@@ -169,7 +169,7 @@ export const Sheet =({
                     </form>
                 }
 
-                <form onSubmit={onSubmitHandler} className="min-h-0 flex-1 overflow-y-auto p-6 pt-0 flex flex-col gap-3">
+                <form onSubmit={onSubmitHandler} className="min-h-0 flex-1 overflow-y-auto m-5 p-1 pt-0 flex flex-col gap-3">
                     <ul className="flex flex-col">
                         {filteredExercises.map((exercise) => (
                             <li key={exercise.id} className="touch-manipulation first:rounded-t-lg last:rounded-b-lg border-b border-mono-500/30 last:border-b-0 bg-mono-700/60 p-3">

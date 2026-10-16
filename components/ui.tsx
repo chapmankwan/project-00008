@@ -13,7 +13,7 @@ export function Num({ label, value, step = 1, hideLabel = false, onCommit }: {
     <label className="flex flex-col gap-1 text-xs text-mono-400">
       <span className={hideLabel ? "sr-only" : ""}>{label}</span>
       <input
-        type="number" inputMode="decimal" min={0} step={step} defaultValue={value} className={field}
+        type="number" inputMode="decimal" min={0} defaultValue={value} className={field}
         onBlur={(e) => {
           const v = Number(e.target.value);
           if (e.target.value !== "" && Number.isFinite(v) && v >= 0 && v !== value) onCommit(v);

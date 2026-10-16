@@ -1,7 +1,7 @@
 "use client";
 
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, patch, put, remove, removeSession, type SessionSet } from "@/lib/db";
+import { db, finishSession, patch, put, remove, removeSession, type SessionSet } from "@/lib/db";
 import { Num, ghost } from "./ui";
 
 export default function SessionView({ id, onBack }: { id: string; onBack: () => void }) {
@@ -29,6 +29,11 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
     onBack();
   }
 
+  async function completeSession() {
+    await finishSession(id);
+    onBack();
+  }
+
   return (
     <section className="mt-4 space-y-4">
       <div className="flex items-center justify-between gap-2">
@@ -37,7 +42,10 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
           <h2 className="truncate text-lg font-semibold">{session?.name}</h2>
           {session && <p className="text-xs text-slate-400">{new Date(session.startedAt).toLocaleDateString()}</p>}
         </div>
-        <button className={ghost} onClick={deleteSession}>Delete</button>
+        <div className="flex gap-2">
+          <button className={ghost} onClick={completeSession}>Finish</button>
+          <button className={ghost} onClick={deleteSession}>Delete</button>
+        </div>
       </div>
 
       {groups.size === 0 && <p className="text-slate-400">This template had no exercises. Add some to the template, then start again.</p>}
