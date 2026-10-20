@@ -12,6 +12,21 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
   const session = useLiveQuery(() => db.sessions.get(id), [id]);
   const sets = useLiveQuery(() => db.sessionSets.where("sessionId").equals(id).toArray(), [id], []);
   const exercises = useLiveQuery(() => db.exercises.toArray(), [], []);
+  const previousSets = useLiveQuery(async () => {
+    if (!session) return new Map<string, SessionSet>();
+
+    const previousSession = (await db.sessions
+      .where("startedAt")
+      .below(session.startedAt)
+      .reverse()
+      .toArray())
+      .find((candidate) => candidate.templateId === session.templateId);
+
+    if (!previousSession) return new Map<string, SessionSet>();
+
+    const priorSets = await db.sessionSets.where("sessionId").equals(previousSession.id).toArray();
+    return new Map(priorSets.map((set) => [`${set.exerciseId}:${set.setNumber}`, set]));
+  }, [id, session?.templateId, session?.startedAt], new Map<string, SessionSet>());
   const names = new Map(exercises.map((e) => [e.id, e.name]));
 
   const groups = new Map<number, SessionSet[]>();
@@ -71,6 +86,13 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
       {[...groups.values()].map((group) => (
         <div key={group[0].position} className="rounded-lg border border-mono-600 bg-mono-700 p-3">
           <p className="font-medium">{names.get(group[0].exerciseId) ?? "Unknown exercise"}</p>
+          <div className="mt-2 grid grid-cols-[2rem_2.5rem_minmax(0,1fr)_minmax(0,1fr)_2rem] gap-1 px-1 text-[10px] leading-tight text-mono-400">
+            <span aria-hidden="true" />
+            <span className="text-center">Prev</span>
+            <span className="pl-3">Weight</span>
+            <span className="pl-3">Reps</span>
+            <span aria-hidden="true" />
+          </div>
           <ul className="mt-2 space-y-2">
             {group.map((s) => (
               <li key={s.id}>
@@ -78,7 +100,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
                   label={`set ${s.setNumber} of ${names.get(s.exerciseId) ?? "exercise"}`}
                   onDelete={() => void deleteSet(group, s)}
                 >
-                  <div className="grid grid-cols-[2.5rem_1fr_1fr_2.75rem] items-end gap-2 p-1">
+                  <div className="grid grid-cols-[2rem_2.5rem_minmax(0,1fr)_minmax(0,1fr)_2rem] items-end gap-1 p-1">
                     <button
                       type="button"
                       aria-label={`Set ${s.setNumber} type${s.setType ? `: ${s.setType}` : ""}`}
@@ -92,6 +114,14 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
                         </span>
                       )}
                     </button>
+                    <span
+                      className="mb-3 text-center text-xs text-mono-400"
+                      aria-label={previousSets.get(`${s.exerciseId}:${s.setNumber}`)
+                        ? `Previous weight ${previousSets.get(`${s.exerciseId}:${s.setNumber}`)?.weight} pounds`
+                        : "No previous set"}
+                    >
+                      {previousSets.get(`${s.exerciseId}:${s.setNumber}`)?.weight ?? "—"}
+                    </span>
                     <Num label={`Set ${s.setNumber} weight`} hideLabel value={s.weight} onCommit={(v) => patch("sessionSets", s.id, { weight: v })} />
                     <Num label={`Set ${s.setNumber} reps`} hideLabel value={s.reps} onCommit={(v) => patch("sessionSets", s.id, { reps: Math.round(v) })} />
                     <input
