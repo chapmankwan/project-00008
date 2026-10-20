@@ -103,39 +103,40 @@ export default function App() {
         </main>
     );
 
-    function Home({ onOpenTemplate,onOpenSession }: HomeProps) {
+    function Home({ onOpenTemplate, onOpenSession }: HomeProps) {
         const sessions = useLiveQuery(() => db.sessions.orderBy("startedAt").reverse().toArray(), [], []);
 
         return (
             <div className="flex w-full flex-col gap-4 px-5">
-                <h2 className="font-semibold text-xs uppercase tracking-tighter">History</h2>
                 {
                     sessions.length > 0 ?
-                    <ul className="flex flex-col gap-4 overflow-y-visible">
-                        {sessions.slice(0,MAX_DISPLAYED_WORKOUTS).map((workout) => (
+                    <>
+                        <h2 className="font-semibold text-xs uppercase tracking-tighter">History</h2>
+                        <ul className="flex flex-col gap-4 overflow-y-visible">
+                            {sessions.slice(0,MAX_DISPLAYED_WORKOUTS).map((workout) => (
 
-                            <li key={workout.id}>
-                                <WorkoutTiles
-                                    label={workout.name}
-                                    startedAt={workout.startedAt}
-                                    durationSeconds={workout.durationSeconds}
-                                    totalVolume={workout.totalVolume}
-                                    recordsBroken={workout.recordsBroken}
-                                    onClick={() => onOpenSession(workout.id)}
-                                />
-                            </li>
-                        ))}
-                    </ul>
+                                <li key={workout.id}>
+                                    <WorkoutTiles
+                                        label={workout.name}
+                                        startedAt={workout.startedAt}
+                                        durationSeconds={workout.durationSeconds}
+                                        totalVolume={workout.totalVolume}
+                                        recordsBroken={workout.recordsBroken}
+                                        onClick={() => onOpenSession(workout.id)}
+                                    />
+                                </li>
+                            ))}
+                        </ul>
+                    </>
 
                     :
                     
                     <div className="flex flex-col items-center gap-4">
-                        <p className="text-sm">No workouts completed yet</p>
                         <button 
                             className={clsx(simpleBtn, "w-full")}
                             onClick={() => setView({ kind: "workout" })}
                         >
-                            Start a routine
+                            Start a workout
                         </button>
                     </div>
                 }

@@ -1,12 +1,13 @@
 import Dexie, { type EntityTable } from "dexie";
 import exerciseCatalog from "./exercises.json";
+import type { SetType } from "./set-types";
 
 export type TableName = "exercises" | "templates" | "templateExercises" | "sessions" | "sessionSets";
 type Rec = { id: string } & Record<string, unknown>;
 
 export type Exercise = { id: string; name: string; muscle: string; updatedAt?: number };
 export type Template = { id: string; name: string; updatedAt: number };
-export type TemplateTargetSet = { weight: number; reps: number };
+export type TemplateTargetSet = { weight: number; reps: number; setType?: SetType };
 // A template exercise stores each set's target weight and reps; legacy scalar fields are kept readable.
 export type TemplateExercise = {
   id: string;
@@ -32,8 +33,16 @@ export type Session = {
   updatedAt: number;
 };
 export type SessionSet = {
-  id: string; sessionId: string; exerciseId: string; position: number; setNumber: number;
-  weight: number; reps: number; done: boolean; updatedAt: number;
+  id: string;
+  sessionId: string;
+  exerciseId: string;
+  position: number;
+  setNumber: number;
+  weight: number;
+  reps: number;
+  done: boolean;
+  setType?: SetType;
+  updatedAt: number;
 };
 export type OutboxItem = { seq?: number; table: TableName; recordId: string; op: "put" | "delete"; payload?: unknown; ts: number };
 
@@ -126,7 +135,7 @@ export async function startSession(templateId: string): Promise<string> {
     const sets: Rec[] = [];
     for (const en of entries) {
       const last = await lastSets(en.exerciseId);
-      const targetSets = en.targetSets?.length
+      const targetSets: TemplateTargetSet[] = en.targetSets?.length
         ? en.targetSets
         : Array.from({ length: Math.max(1, en.sets ?? 3) }, () => ({ weight: 0, reps: en.reps ?? 10 }));
       for (const [index, target] of targetSets.entries()) {
@@ -135,6 +144,7 @@ export async function startSession(templateId: string): Promise<string> {
           id: crypto.randomUUID(), sessionId, exerciseId: en.exerciseId, position: en.position, setNumber: index + 1,
           weight: target.weight > 0 ? target.weight : previousSet?.weight ?? 0,
           reps: target.reps || previousSet?.reps || 10,
+          setType: target.setType ?? "normal",
           done: false,
         });
       }

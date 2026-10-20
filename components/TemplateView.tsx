@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, patch, put, putMany, remove, startSession, type TemplateExercise, type TemplateTargetSet } from "@/lib/db";
+import { SET_TYPE_OPTIONS, SET_TYPE_SHORT_LABELS, type SetType } from "@/lib/set-types";
 import { Num, field, ghost, primary, simpleBtn } from "./ui";
 import { Sheet } from "./sheet";
 
@@ -28,6 +29,7 @@ export default function TemplateView({ id, onBack, onStartSession }: {
   // const [pick, setPick] = useState("");
   // const [custom, setCustom] = useState("");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [setTypeTarget, setSetTypeTarget] = useState<{ entryId: string; setIndex: number } | null>(null);
   const names = new Map(exercises.map((e) => [e.id, e.name]));
 
   	async function addSelectedExercises(exerciseIds: string[]) {
@@ -48,6 +50,18 @@ export default function TemplateView({ id, onBack, onStartSession }: {
   async function updateTargetSets(entry: TemplateExercise, targetSets: TemplateTargetSet[]) {
     await patch("templateExercises", entry.id, { targetSets });
   };
+
+  async function updateSetType(setType: SetType) {
+    if (!setTypeTarget) return;
+    const entry = entries.find((item) => item.id === setTypeTarget.entryId);
+    if (!entry) return;
+
+    const targetSets = getTargetSets(entry).map((target, index) =>
+      index === setTypeTarget.setIndex ? { ...target, setType } : target,
+    );
+    await updateTargetSets(entry, targetSets);
+    setSetTypeTarget(null);
+  }
 
   async function deleteTemplate() {
     if (!window.confirm("Delete this template? Logged workouts are kept.")) return;
@@ -107,20 +121,31 @@ export default function TemplateView({ id, onBack, onStartSession }: {
                     <EllipsisVerticalIcon />
                   </button>
                 </div>
-				<div className="grid grid-cols-[1.5rem_1fr_1fr_auto] items-end gap-2">
+                <div className="grid grid-cols-[2.5rem_1fr_1fr] items-end gap-2">
 					<span className="text-xs font-semibold text-mono-300">Set</span>
 					<span className="text-xs font-semibold text-mono-300">Weight</span>
 					<span className="text-xs font-semibold text-mono-300">Reps</span>
 				</div>
                 <ul className="my-2 space-y-2">
                   {targetSets.map((target, index) => (
-                    <li key={`${en.id}-target-${index}`} className="grid grid-cols-[1.5rem_1fr_1fr_auto] items-end gap-2">
-                      <span className="pb-3 text-sm font-bold text-blush-400/50">{index + 1}</span>
+                    <li key={`${en.id}-target-${index}`} className="grid grid-cols-[2.5rem_1fr_1fr] items-end gap-2">
+                      <button
+                        type="button"
+                        aria-label={`Set ${index + 1} type${target.setType ? `: ${target.setType}` : ""}`}
+                        onClick={() => setSetTypeTarget({ entryId: en.id, setIndex: index })}
+                        className="mb-1 flex min-h-10 flex-col items-center justify-center rounded-lg bg-mono-600 text-sm font-medium text-mono-100 hover:bg-mono-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
+                      >
+                        {index + 1}
+                        {target.setType && target.setType !== "normal" && (
+                          <span className="text-[8px] leading-none text-lavender-200">
+                            {SET_TYPE_SHORT_LABELS[target.setType]}
+                          </span>
+                        )}
+                      </button>
                       <Num
                         label="Weight (lbs)"
 						hideLabel
                         value={target.weight}
-                        step={0.5}
                         onCommit={(weight) => {
                           const next = [...targetSets];
                           next[index] = { ...target, weight };
@@ -168,6 +193,35 @@ export default function TemplateView({ id, onBack, onStartSession }: {
           onSubmit={addSelectedExercises}
           data={exercises}
         />
+      )}
+
+      {setTypeTarget && (
+        <div className="fixed inset-0 z-40 flex items-end bg-black/50" onClick={() => setSetTypeTarget(null)}>
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="template-set-type-title"
+            className="w-full space-y-2 rounded-t-2xl border-t border-mono-600 bg-mono-800 p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h3 id="template-set-type-title" className="font-semibold">
+                Set {setTypeTarget.setIndex + 1} type
+              </h3>
+              <button type="button" className="text-sm text-mono-300 underline" onClick={() => setSetTypeTarget(null)}>Cancel</button>
+            </div>
+            {SET_TYPE_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className="min-h-11 w-full rounded-lg bg-mono-700 px-4 text-left hover:bg-mono-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
+                onClick={() => void updateSetType(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </section>
+        </div>
       )}
 
     </section>

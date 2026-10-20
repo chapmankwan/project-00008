@@ -88,6 +88,17 @@ body {
 
 }
 
+input.number-input {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+input.number-input::-webkit-inner-spin-button,
+input.number-input::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
 @layer utilities {
   .scrollbar-soft {
     scrollbar-width: thin;
