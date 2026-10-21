@@ -13,7 +13,7 @@ export function Num({ label, value, hideLabel = false, onCommit }: {
     <label className="flex flex-col gap-1 text-xs text-mono-400">
       <span className={hideLabel ? "sr-only" : ""}>{label}</span>
       <input
-        type="number" inputMode="numeric" min={0} step={1} defaultValue={value} className={`${field} number-input appearance-none`}
+        type="number" inputMode="numeric" min={0} step={1} defaultValue={value} className={`${field} number-input appearance-none border-mono-600`}
         onBlur={(e) => {
           const rawValue = e.target.value;
           if (rawValue === "") {
