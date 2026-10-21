@@ -1,13 +1,13 @@
 "use client";
 
-import { type SubmitEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, put, seedExercises } from "@/lib/db";
+import { db, seedExercises } from "@/lib/db";
 
 import { startSync } from "@/lib/sync";
 import { useOnline } from "@/app/utilities";
 
-import { field, ghost, primary, simpleBtn } from "@/components/ui";
+import { simpleBtn } from "@/components/ui";
 
 import { ActiveSession, SelectorTab, WorkoutTiles } from "@/components";
 
@@ -23,13 +23,6 @@ interface HomeProps {
 };
 
 const MAX_DISPLAYED_WORKOUTS = 10;
-
-const temporaryWorkouts = [
-    { id: "day-1-heavy-legs", label: "DAY 1 - Heavy Legs" },
-    { id: "day-2-chest-back", label: "DAY 2 - Chest & Back" },
-    { id: "day-3-leg-shoulders", label: "DAY 3 - Legs & Shoulders" },
-    { id: "day-4-upper", label: "DAY 4 - Upper" },
-];
 
 export default function App() {
     const online = useOnline();
@@ -90,7 +83,7 @@ export default function App() {
                     <ActiveSession setView={() => setView({ kind: "session", id: activeSession.id })} />
                 }
             </header>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[calc(7rem+env(safe-area-inset-bottom))]">
+            <div className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${view.kind === "session" || view.kind === "template" ? "" : "pb-[calc(7rem+env(safe-area-inset-bottom))]"}`}>
                 {renderView()}
             </div>
             <footer className="absolute inset-x-0 bottom-0 z-10 items-center px-4 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-1">
@@ -107,7 +100,7 @@ export default function App() {
         const sessions = useLiveQuery(() => db.sessions.orderBy("startedAt").reverse().toArray(), [], []);
 
         return (
-            <div className="flex w-full flex-col gap-4 px-5">
+            <div className="flex w-full flex-col gap-4">
                 {
                     sessions.length > 0 ?
                     <>
