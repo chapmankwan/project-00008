@@ -49,7 +49,13 @@ export default function WorkoutApp() {
           onOpenSession={(id) => setView({ kind: "session", id })}
         />
       )}
-      {view.kind === "template" && <TemplateView id={view.id} onBack={home} />}
+      {view.kind === "template" && (
+        <TemplateView
+          id={view.id}
+          onBack={home}
+          onStartSession={(id) => setView({ kind: "session", id })}
+        />
+      )}
       {view.kind === "session" && <SessionView id={view.id} onBack={home} />}
     </main>
   );

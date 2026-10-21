@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Workouts" },
   icons: {
     icon: [{ url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" }],
-    apple: "/icons/apple-touch-icon.png",
+    apple: [{ url: "/icons/apple-touch-icon.png", type: "image/png", sizes: "180x180" }],
   },
   formatDetection: { telephone: false },
   manifest: "/manifest.ts",

@@ -1,12 +1,13 @@
 import Dexie, { type EntityTable } from "dexie";
 import exerciseCatalog from "./exercises.json";
+import type { SetType } from "./set-types";
 
 export type TableName = "exercises" | "templates" | "templateExercises" | "sessions" | "sessionSets";
 type Rec = { id: string } & Record<string, unknown>;
 
 export type Exercise = { id: string; name: string; muscle: string; updatedAt?: number };
 export type Template = { id: string; name: string; updatedAt: number };
-export type TemplateTargetSet = { weight: number; reps: number };
+export type TemplateTargetSet = { weight: number; reps: number; setType?: SetType };
 // A template exercise stores each set's target weight and reps; legacy scalar fields are kept readable.
 export type TemplateExercise = {
   id: string;
@@ -19,10 +20,29 @@ export type TemplateExercise = {
   updatedAt: number;
 };
 // A session is one logged workout, started from a template. Name is copied so history survives template edits or deletion.
-export type Session = { id: string; templateId: string; name: string; startedAt: number; updatedAt: number };
+export type Session = {
+  id: string;
+  templateId: string;
+  name: string;
+  startedAt: number;
+  status?: "active" | "completed";
+  finishedAt?: number;
+  durationSeconds?: number;
+  totalVolume?: number;
+  recordsBroken?: number;
+  updatedAt: number;
+};
 export type SessionSet = {
-  id: string; sessionId: string; exerciseId: string; position: number; setNumber: number;
-  weight: number; reps: number; done: boolean; updatedAt: number;
+  id: string;
+  sessionId: string;
+  exerciseId: string;
+  position: number;
+  setNumber: number;
+  weight: number;
+  reps: number;
+  done: boolean;
+  setType?: SetType;
+  updatedAt: number;
 };
 export type OutboxItem = { seq?: number; table: TableName; recordId: string; op: "put" | "delete"; payload?: unknown; ts: number };
 
@@ -115,7 +135,7 @@ export async function startSession(templateId: string): Promise<string> {
     const sets: Rec[] = [];
     for (const en of entries) {
       const last = await lastSets(en.exerciseId);
-      const targetSets = en.targetSets?.length
+      const targetSets: TemplateTargetSet[] = en.targetSets?.length
         ? en.targetSets
         : Array.from({ length: Math.max(1, en.sets ?? 3) }, () => ({ weight: 0, reps: en.reps ?? 10 }));
       for (const [index, target] of targetSets.entries()) {
@@ -124,11 +144,18 @@ export async function startSession(templateId: string): Promise<string> {
           id: crypto.randomUUID(), sessionId, exerciseId: en.exerciseId, position: en.position, setNumber: index + 1,
           weight: target.weight > 0 ? target.weight : previousSet?.weight ?? 0,
           reps: target.reps || previousSet?.reps || 10,
+          setType: target.setType ?? "normal",
           done: false,
         });
       }
     }
-    await putMany("sessions", [{ id: sessionId, templateId, name: template?.name ?? "Workout", startedAt: Date.now() }]);
+    await putMany("sessions", [{
+      id: sessionId,
+      templateId,
+      name: template?.name ?? "Workout",
+      startedAt: Date.now(),
+      status: "active",
+    }]);
     await putMany("sessionSets", sets);
   });
   return sessionId;
@@ -138,6 +165,57 @@ export async function removeSession(id: string) {
   await db.transaction("rw", [db.sessions, db.sessionSets, db.outbox], async () => {
     for (const s of await db.sessionSets.where("sessionId").equals(id).toArray()) await remove("sessionSets", s.id);
     await remove("sessions", id);
+  });
+}
+
+export async function finishSession(id: string) {
+  await db.transaction("rw", [db.sessions, db.sessionSets, db.outbox], async () => {
+    const session = await db.sessions.get(id);
+    if (!session || session.status === "completed") return;
+
+    const finishedAt = Date.now();
+    const currentSets = await db.sessionSets.where("sessionId").equals(id).toArray();
+    const completedSets = currentSets.filter((set) => set.done);
+    const totalVolume = completedSets.reduce((total, set) => total + set.weight * set.reps, 0);
+    const exerciseIds = [...new Set(completedSets.map((set) => set.exerciseId))];
+    let recordsBroken = 0;
+
+    for (const exerciseId of exerciseIds) {
+      const exerciseSets = await db.sessionSets.where("exerciseId").equals(exerciseId).toArray();
+      const relatedSessions = await db.sessions.bulkGet([...new Set(exerciseSets.map((set) => set.sessionId))]);
+      const sessionsById = new Map(relatedSessions.filter((item): item is Session => !!item).map((item) => [item.id, item]));
+      const previousBestWeight = exerciseSets.reduce((best, set) => {
+        const setSession = sessionsById.get(set.sessionId);
+        const isEarlierCompletedSession = set.sessionId !== id
+          && !!setSession
+          && setSession.startedAt < session.startedAt
+          && setSession.status !== "active";
+        return isEarlierCompletedSession && set.done ? Math.max(best, set.weight) : best;
+      }, 0);
+      const currentBestWeight = completedSets
+        .filter((set) => set.exerciseId === exerciseId)
+        .reduce((best, set) => Math.max(best, set.weight), 0);
+
+      if (currentBestWeight > previousBestWeight) recordsBroken++;
+    }
+
+    const updatedSession: Session = {
+      ...session,
+      status: "completed",
+      finishedAt,
+      durationSeconds: Math.max(0, Math.floor((finishedAt - session.startedAt) / 1000)),
+      totalVolume,
+      recordsBroken,
+      updatedAt: finishedAt,
+    };
+    await db.sessions.put(updatedSession);
+    await db.outbox.add({
+      table: "sessions",
+      recordId: id,
+      op: "put",
+      payload: updatedSession,
+      ts: finishedAt,
+    });
   });
 }
 

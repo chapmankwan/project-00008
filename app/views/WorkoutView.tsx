@@ -6,7 +6,11 @@ import { db, put } from "@/lib/db";
 import TemplateView from "@/components/TemplateView";
 import { field, simpleBtn } from "@/components/ui";
 
-export const WorkoutView = ({ onBack }: { id: string; onBack: () => void }) => {
+export const WorkoutView = ({ onBack, onStartSession }: {
+    id: string;
+    onBack: () => void;
+    onStartSession: (sessionId: string) => void;
+}) => {
     const templates = useLiveQuery(() => db.templates.orderBy("name").toArray(), [], []);
     const templateExercises = useLiveQuery(() => db.templateExercises.toArray(), [], []);
     const exercises = useLiveQuery(() => db.exercises.toArray(), [], []);
@@ -33,6 +37,7 @@ export const WorkoutView = ({ onBack }: { id: string; onBack: () => void }) => {
             <TemplateView
                 id={editingTemplateId}
                 onBack={() => setEditingTemplateId(null)}
+                onStartSession={onStartSession}
             />
         );
     };
