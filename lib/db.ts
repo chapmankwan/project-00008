@@ -118,6 +118,126 @@ export async function remove(table: TableName, id: string) {
   });
 }
 
+export async function removeExerciseFromSession(sessionId: string, position: number) {
+  await db.transaction("rw", [db.sessions, db.sessionSets, db.outbox], async () => {
+    const session = await db.sessions.get(sessionId);
+    if (!session || session.status === "completed") return;
+
+    const exerciseSets = (await db.sessionSets.where("sessionId").equals(sessionId).toArray())
+      .filter((set) => set.position === position);
+    if (exerciseSets.length === 0) return;
+
+    const timestamp = Date.now();
+    await db.sessionSets.bulkDelete(exerciseSets.map((set) => set.id));
+    await db.outbox.bulkAdd(exerciseSets.map((set) => ({
+      table: "sessionSets" as const,
+      recordId: set.id,
+      op: "delete" as const,
+      ts: timestamp,
+    })));
+  });
+}
+
+export async function replaceSessionExercise(
+  sessionId: string,
+  position: number,
+  previousExerciseId: string,
+  nextExerciseId: string,
+  updateTemplate: boolean,
+) {
+  await db.transaction("rw", [db.sessions, db.sessionSets, db.templateExercises, db.outbox], async () => {
+    const session = await db.sessions.get(sessionId);
+    if (!session || session.status === "completed" || previousExerciseId === nextExerciseId) return;
+
+    const timestamp = Date.now();
+    const exerciseSets = (await db.sessionSets.where("sessionId").equals(sessionId).toArray())
+      .filter((set) => set.position === position && set.exerciseId === previousExerciseId);
+    if (exerciseSets.length === 0) return;
+
+    const updatedSets: SessionSet[] = exerciseSets.map((set) => ({
+      ...set,
+      exerciseId: nextExerciseId,
+      updatedAt: timestamp,
+    }));
+    await db.sessionSets.bulkPut(updatedSets);
+    await db.outbox.bulkAdd(updatedSets.map((set) => ({
+      table: "sessionSets" as const,
+      recordId: set.id,
+      op: "put" as const,
+      payload: set,
+      ts: timestamp,
+    })));
+
+    if (updateTemplate && session.templateId) {
+      const templateEntry = (await db.templateExercises.where("templateId").equals(session.templateId).toArray())
+        .find((entry) => entry.position === position && entry.exerciseId === previousExerciseId);
+      if (templateEntry) {
+        const updatedEntry: TemplateExercise = {
+          ...templateEntry,
+          exerciseId: nextExerciseId,
+          updatedAt: timestamp,
+        };
+        await db.templateExercises.put(updatedEntry);
+        await db.outbox.add({
+          table: "templateExercises",
+          recordId: updatedEntry.id,
+          op: "put",
+          payload: updatedEntry,
+          ts: timestamp,
+        });
+      }
+    }
+  });
+}
+
+export async function addExerciseToSession(sessionId: string, exerciseId: string, updateTemplate: boolean) {
+  await db.transaction("rw", [db.sessions, db.sessionSets, db.templateExercises, db.outbox], async () => {
+    const session = await db.sessions.get(sessionId);
+    if (!session || session.status === "completed") return;
+
+    const sessionSets = await db.sessionSets.where("sessionId").equals(sessionId).toArray();
+    const position = Math.max(-1, ...sessionSets.map((set) => set.position)) + 1;
+    const last = (await lastSets(exerciseId)).at(-1);
+    const timestamp = Date.now();
+    const newSet: SessionSet = {
+      id: crypto.randomUUID(),
+      sessionId,
+      exerciseId,
+      position,
+      setNumber: 1,
+      weight: last?.weight ?? 0,
+      reps: last?.reps ?? 10,
+      done: false,
+      setType: "normal",
+      updatedAt: timestamp,
+    };
+    await db.sessionSets.add(newSet);
+    await db.outbox.add({ table: "sessionSets", recordId: newSet.id, op: "put", payload: newSet, ts: timestamp });
+
+    if (updateTemplate && session.templateId) {
+      const entries = await db.templateExercises.where("templateId").equals(session.templateId).toArray();
+      if (!entries.some((entry) => entry.exerciseId === exerciseId)) {
+        const templateEntry: TemplateExercise = {
+          id: crypto.randomUUID(),
+          templateId: session.templateId,
+          exerciseId,
+          position: Math.max(-1, ...entries.map((entry) => entry.position)) + 1,
+          targetSets: [{ weight: last?.weight ?? 0, reps: last?.reps ?? 10, setType: "normal" }],
+          updatedAt: timestamp,
+        };
+        await db.templateExercises.add(templateEntry);
+        await db.outbox.add({
+          table: "templateExercises",
+          recordId: templateEntry.id,
+          op: "put",
+          payload: templateEntry,
+          ts: timestamp,
+        });
+      }
+    }
+  });
+}
+
 // Most recent session's completed sets for an exercise, used to prefill the next session.
 async function lastSets(exerciseId: string) {
   const done = (await db.sessionSets.where("exerciseId").equals(exerciseId).toArray()).filter((s) => s.done);
