@@ -196,7 +196,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 
 			<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
 				{groups.size === 0 && <p className="text-mono-400">This template had no exercises. Add some to the template, then start again.</p>}
-				<div className="space-y-4">
+				<div className="space-y-2">
 				{[...groups.values()].map((group) => (
 					<div key={`group-${group[0].position}`}>
 				<div key={group[0].position} className="rounded-lg border border-mono-600 bg-mono-700 p-3">
@@ -262,7 +262,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 						))}
 					</ul>
 					<div className="mt-2 flex gap-2">
-						<button className={simpleBtn} onClick={() => addSet(group)}>Add set</button>
+						<button className={clsx(simpleBtn, "w-full")} onClick={() => addSet(group)}>Add set</button>
 					</div>
 				</div>
 					</div>
