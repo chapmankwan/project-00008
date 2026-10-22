@@ -2,14 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, finishSession, patch, put, remove, removeSession, type SessionSet } from "@/lib/db";
+import {
+	db,
+	finishSession,
+	patch,
+	put,
+	remove,
+	removeExerciseFromSession,
+	removeSession,
+	replaceSessionExercise,
+	type SessionSet,
+} from "@/lib/db";
 import { SET_TYPE_OPTIONS, SET_TYPE_SHORT_LABELS } from "@/lib/set-types";
 import { Num, simpleBtn } from "./ui";
 import { SwipeToDelete } from "./swipe-to-delete";
 import clsx from "clsx";
+import { EllipsisVerticalIcon } from "@/app/icons";
 
 export default function SessionView({ id, onBack }: { id: string; onBack: () => void }) {
 	const [setOptionsTarget, setSetOptionsTarget] = useState<SessionSet | null>(null);
+	const [exerciseAction, setExerciseAction] = useState<{ position: number; exerciseId: string; mode: "menu" | "replace" } | null>(null);
+	const [replacementExerciseId, setReplacementExerciseId] = useState("");
+	const [updateRoutineToo, setUpdateRoutineToo] = useState(false);
+	const [exerciseSearch, setExerciseSearch] = useState("");
 	const [now, setNow] = useState(() => Date.now());
 	const session = useLiveQuery(() => db.sessions.get(id), [id]);
 	const sets = useLiveQuery(() => db.sessionSets.where("sessionId").equals(id).toArray(), [id], []);
@@ -86,6 +101,31 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 		setSetOptionsTarget(null);
 	}
 
+	function closeExerciseActions() {
+		setExerciseAction(null);
+		setReplacementExerciseId("");
+		setUpdateRoutineToo(false);
+		setExerciseSearch("");
+	}
+
+	async function removeExercise(position: number) {
+		if (!window.confirm("Remove this exercise and its sets from this workout?")) return;
+		await removeExerciseFromSession(id, position);
+		closeExerciseActions();
+	}
+
+	async function confirmExerciseReplacement() {
+		if (!exerciseAction || !replacementExerciseId) return;
+		await replaceSessionExercise(
+			id,
+			exerciseAction.position,
+			exerciseAction.exerciseId,
+			replacementExerciseId,
+			updateRoutineToo,
+		);
+		closeExerciseActions();
+	}
+
 	return (
 		<section className="flex h-full min-h-0 flex-col gap-4">
 			<div className="flex shrink-0 items-center justify-between gap-2">
@@ -143,7 +183,20 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 				{[...groups.values()].map((group, index, allGroups) => (
 					<div key={`group-${group[0].position}`} className={index === allGroups.length - 1 ? "pb-[calc(7rem+env(safe-area-inset-bottom))]" : ""}>
 				<div key={group[0].position} className="rounded-lg border border-mono-600 bg-mono-700 p-3">
-					<p className="font-medium">{names.get(group[0].exerciseId) ?? "Unknown exercise"}</p>
+					<div className="flex items-center justify-between gap-2">
+						<p className="min-w-0 flex-1 truncate font-medium">{names.get(group[0].exerciseId) ?? "Unknown exercise"}</p>
+						{session?.status !== "completed" && (
+							<button
+								type="button"
+								aria-label={`Exercise actions for ${names.get(group[0].exerciseId) ?? "exercise"}`}
+								title="Exercise actions"
+								className="grid size-9 shrink-0 place-items-center rounded-full text-mono-300 hover:bg-mono-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
+								onClick={() => setExerciseAction({ position: group[0].position, exerciseId: group[0].exerciseId, mode: "menu" })}
+							>
+								<EllipsisVerticalIcon />
+							</button>
+						)}
+					</div>
 					<div className="mt-1 grid grid-cols-[2.5rem_repeat(3,minmax(0,1fr))_2.5rem] gap-2 px-0.5 text-[10px] leading-tight text-mono-400">
 						<span className="text-center">Set</span>
 						<span className="pl-3">Prev</span>
@@ -223,6 +276,83 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 								{option.label}
 							</button>
 						))}
+					</section>
+				</div>
+			)}
+			{exerciseAction && (
+				<div className="fixed inset-0 z-40 flex items-end bg-black/50" onClick={closeExerciseActions}>
+					<section
+						role="dialog"
+						aria-modal="true"
+						aria-labelledby="exercise-actions-title"
+						className="max-h-[85dvh] w-full space-y-3 overflow-y-auto rounded-t-2xl border-t border-mono-600 bg-mono-800 p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]"
+						onClick={(event) => event.stopPropagation()}
+					>
+						<div className="flex items-center justify-between">
+							<h3 id="exercise-actions-title" className="font-semibold">
+								{exerciseAction.mode === "menu" ? names.get(exerciseAction.exerciseId) ?? "Exercise" : "Replace exercise"}
+							</h3>
+							<button type="button" className="text-sm text-mono-300 underline" onClick={closeExerciseActions}>Cancel</button>
+						</div>
+						{exerciseAction.mode === "menu" ? (
+							<>
+								<button
+									type="button"
+									className="min-h-11 w-full rounded-lg bg-mono-700 px-4 text-left hover:bg-mono-600"
+									onClick={() => setExerciseAction({ ...exerciseAction, mode: "replace" })}
+								>
+									Replace exercise
+								</button>
+								<button
+									type="button"
+									className="min-h-11 w-full rounded-lg bg-blush-900/60 px-4 text-left text-blush-200 hover:bg-blush-900"
+									onClick={() => void removeExercise(exerciseAction.position)}
+								>
+									Remove from this workout
+								</button>
+							</>
+						) : (
+							<>
+								<input
+									type="search"
+									value={exerciseSearch}
+									onChange={(event) => setExerciseSearch(event.target.value)}
+									placeholder="Search exercises"
+									className="min-h-11 w-full rounded-lg border border-mono-600 bg-mono-900 px-3 text-mono-100 focus:outline-none focus:border-blush-500"
+								/>
+								<ul className="max-h-56 space-y-1 overflow-y-auto">
+									{exercises
+										.filter((exercise) => exercise.id !== exerciseAction.exerciseId)
+										.filter((exercise) => `${exercise.name} ${exercise.muscle}`.toLocaleLowerCase().includes(exerciseSearch.trim().toLocaleLowerCase()))
+										.map((exercise) => (
+											<li key={exercise.id}>
+												<button
+													type="button"
+													aria-pressed={replacementExerciseId === exercise.id}
+													className={clsx("min-h-11 w-full rounded-lg px-3 text-left", replacementExerciseId === exercise.id ? "bg-lavender-700" : "bg-mono-700 hover:bg-mono-600")}
+													onClick={() => setReplacementExerciseId(exercise.id)}
+												>
+													{exercise.name} <span className="text-xs text-mono-300">({exercise.muscle})</span>
+												</button>
+											</li>
+										))}
+								</ul>
+								{session?.templateId && (
+									<label className="flex items-start gap-3 rounded-lg bg-mono-700 p-3 text-sm">
+										<input type="checkbox" checked={updateRoutineToo} onChange={(event) => setUpdateRoutineToo(event.target.checked)} className="mt-1 size-4 accent-lavender-400" />
+										<span>Also use this exercise in future workouts from this routine</span>
+									</label>
+								)}
+								<button
+									type="button"
+									disabled={!replacementExerciseId}
+									className={clsx(simpleBtn, "w-full disabled:cursor-not-allowed disabled:opacity-50")}
+									onClick={() => void confirmExerciseReplacement()}
+								>
+									Replace exercise
+								</button>
+							</>
+						)}
 					</section>
 				</div>
 			)}
