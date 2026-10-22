@@ -71,28 +71,35 @@ export default function App() {
 
     return (
         <main className="relative mx-auto flex h-dvh w-full flex-col overflow-hidden p-4">
-            <header className="flex shrink-0 items-center justify-between gap-3 pb-3">
-                <div className="min-w-0">
-                    <h1 className="text-md font-semibold">minifridge</h1>
-                    <p role="status" className="text-xs tracking-tighter text-slate-400">
-                        <span className={online ? "text-green-400" : "text-red-400"}>{online ? "online" : "offline"}</span>, {pending} unsynced
-                    </p>
-                </div>
-                { 
-                    activeSession &&                
-                    <ActiveSession setView={() => setView({ kind: "session", id: activeSession.id })} />
-                }
-            </header>
+            {view.kind !== "session" && (
+                <header className="flex shrink-0 items-center justify-between gap-3 pb-3">
+                    <div className="min-w-0">
+                        <h1 className="text-md font-semibold">minifridge</h1>
+                        <p role="status" className="text-xs tracking-tighter text-slate-400">
+                            <span className={online ? "text-green-400" : "text-red-400"}>{online ? "online" : "offline"}</span>, {pending} unsynced
+                        </p>
+                    </div>
+                    {activeSession && (
+                        <ActiveSession setView={() => setView({ kind: "session", id: activeSession.id })} />
+                    )}
+                </header>
+            )}
             <div className={`min-h-0 flex-1 overflow-y-auto overscroll-contain ${view.kind === "session" || view.kind === "template" ? "" : "pb-[calc(7rem+env(safe-area-inset-bottom))]"}`}>
-                {renderView()}
+                <div
+                    key={view.kind === "session" || view.kind === "template" ? `${view.kind}-${view.id}` : view.kind}
+                    className={view.kind === "session" ? "session-view-enter h-full min-h-0" : undefined}
+                >
+                    {renderView()}
+                </div>
             </div>
-            <footer className="absolute inset-x-0 bottom-0 z-10 items-center px-4 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-1">
-                <SelectorTab 
-                    selectedTab={view.kind}
-                    setSelectedTab={(tab) => setView({ kind: tab })}
-                />
-                
-            </footer>
+            {view.kind !== "session" && (
+                <footer className="absolute inset-x-0 bottom-0 z-10 items-center px-4 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-1">
+                    <SelectorTab
+                        selectedTab={view.kind}
+                        setSelectedTab={(tab) => setView({ kind: tab })}
+                    />
+                </footer>
+            )}
         </main>
     );
 

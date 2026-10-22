@@ -190,6 +190,54 @@ export async function replaceSessionExercise(
   });
 }
 
+export async function addExerciseToSession(sessionId: string, exerciseId: string, updateTemplate: boolean) {
+  await db.transaction("rw", [db.sessions, db.sessionSets, db.templateExercises, db.outbox], async () => {
+    const session = await db.sessions.get(sessionId);
+    if (!session || session.status === "completed") return;
+
+    const sessionSets = await db.sessionSets.where("sessionId").equals(sessionId).toArray();
+    const position = Math.max(-1, ...sessionSets.map((set) => set.position)) + 1;
+    const last = (await lastSets(exerciseId)).at(-1);
+    const timestamp = Date.now();
+    const newSet: SessionSet = {
+      id: crypto.randomUUID(),
+      sessionId,
+      exerciseId,
+      position,
+      setNumber: 1,
+      weight: last?.weight ?? 0,
+      reps: last?.reps ?? 10,
+      done: false,
+      setType: "normal",
+      updatedAt: timestamp,
+    };
+    await db.sessionSets.add(newSet);
+    await db.outbox.add({ table: "sessionSets", recordId: newSet.id, op: "put", payload: newSet, ts: timestamp });
+
+    if (updateTemplate && session.templateId) {
+      const entries = await db.templateExercises.where("templateId").equals(session.templateId).toArray();
+      if (!entries.some((entry) => entry.exerciseId === exerciseId)) {
+        const templateEntry: TemplateExercise = {
+          id: crypto.randomUUID(),
+          templateId: session.templateId,
+          exerciseId,
+          position: Math.max(-1, ...entries.map((entry) => entry.position)) + 1,
+          targetSets: [{ weight: last?.weight ?? 0, reps: last?.reps ?? 10, setType: "normal" }],
+          updatedAt: timestamp,
+        };
+        await db.templateExercises.add(templateEntry);
+        await db.outbox.add({
+          table: "templateExercises",
+          recordId: templateEntry.id,
+          op: "put",
+          payload: templateEntry,
+          ts: timestamp,
+        });
+      }
+    }
+  });
+}
+
 // Most recent session's completed sets for an exercise, used to prefill the next session.
 async function lastSets(exerciseId: string) {
   const done = (await db.sessionSets.where("exerciseId").equals(exerciseId).toArray()).filter((s) => s.done);

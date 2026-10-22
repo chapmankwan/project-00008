@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import {
 	db,
+	addExerciseToSession,
 	finishSession,
 	patch,
 	put,
@@ -25,6 +26,9 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 	const [replacementExerciseId, setReplacementExerciseId] = useState("");
 	const [updateRoutineToo, setUpdateRoutineToo] = useState(false);
 	const [exerciseSearch, setExerciseSearch] = useState("");
+	const [isAddingExercise, setIsAddingExercise] = useState(false);
+	const [newExerciseId, setNewExerciseId] = useState("");
+	const [addToRoutine, setAddToRoutine] = useState(false);
 	const [now, setNow] = useState(() => Date.now());
 	const session = useLiveQuery(() => db.sessions.get(id), [id]);
 	const sets = useLiveQuery(() => db.sessionSets.where("sessionId").equals(id).toArray(), [id], []);
@@ -126,6 +130,19 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 		closeExerciseActions();
 	}
 
+	function closeAddExercise() {
+		setIsAddingExercise(false);
+		setNewExerciseId("");
+		setAddToRoutine(false);
+		setExerciseSearch("");
+	}
+
+	async function confirmAddExercise() {
+		if (!newExerciseId) return;
+		await addExerciseToSession(id, newExerciseId, addToRoutine);
+		closeAddExercise();
+	}
+
 	return (
 		<section className="flex h-full min-h-0 flex-col gap-4">
 			<div className="flex shrink-0 items-center justify-between gap-2">
@@ -180,8 +197,8 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 			<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
 				{groups.size === 0 && <p className="text-mono-400">This template had no exercises. Add some to the template, then start again.</p>}
 				<div className="space-y-4">
-				{[...groups.values()].map((group, index, allGroups) => (
-					<div key={`group-${group[0].position}`} className={index === allGroups.length - 1 ? "pb-[calc(7rem+env(safe-area-inset-bottom))]" : ""}>
+				{[...groups.values()].map((group) => (
+					<div key={`group-${group[0].position}`}>
 				<div key={group[0].position} className="rounded-lg border border-mono-600 bg-mono-700 p-3">
 					<div className="flex items-center justify-between gap-2">
 						<p className="min-w-0 flex-1 truncate font-medium">{names.get(group[0].exerciseId) ?? "Unknown exercise"}</p>
@@ -250,6 +267,14 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 				</div>
 					</div>
 				))}
+				<button
+					type="button"
+					className={clsx(simpleBtn, "w-full")}
+					disabled={session?.status === "completed"}
+					onClick={() => setIsAddingExercise(true)}
+				>
+					Add exercise
+				</button>
 				</div>
 			</div>
 			{/* This is temporary, we can use a generic sheet for content after */}
@@ -353,6 +378,59 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 								</button>
 							</>
 						)}
+					</section>
+				</div>
+			)}
+			{isAddingExercise && (
+				<div className="fixed inset-0 z-40 flex items-end bg-black/50" onClick={closeAddExercise}>
+					<section
+						role="dialog"
+						aria-modal="true"
+						aria-labelledby="add-session-exercise-title"
+						className="max-h-[85dvh] w-full space-y-3 overflow-y-auto rounded-t-2xl border-t border-mono-600 bg-mono-800 p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]"
+						onClick={(event) => event.stopPropagation()}
+					>
+						<div className="flex items-center justify-between">
+							<h3 id="add-session-exercise-title" className="font-semibold">Add exercise</h3>
+							<button type="button" className="text-sm text-mono-300 underline" onClick={closeAddExercise}>Cancel</button>
+						</div>
+						<input
+							type="search"
+							value={exerciseSearch}
+							onChange={(event) => setExerciseSearch(event.target.value)}
+							placeholder="Search exercises"
+							className="min-h-11 w-full rounded-lg border border-mono-600 bg-mono-900 px-3 text-mono-100 focus:outline-none focus:border-blush-500"
+						/>
+						<ul className="max-h-56 space-y-1 overflow-y-auto">
+							{exercises
+								.filter((exercise) => `${exercise.name} ${exercise.muscle}`.toLocaleLowerCase().includes(exerciseSearch.trim().toLocaleLowerCase()))
+								.map((exercise) => (
+									<li key={exercise.id}>
+										<button
+											type="button"
+											aria-pressed={newExerciseId === exercise.id}
+											className={clsx("min-h-11 w-full rounded-lg px-3 text-left", newExerciseId === exercise.id ? "bg-lavender-700" : "bg-mono-700 hover:bg-mono-600")}
+											onClick={() => setNewExerciseId(exercise.id)}
+										>
+											{exercise.name} <span className="text-xs text-mono-300">({exercise.muscle})</span>
+										</button>
+									</li>
+								))}
+						</ul>
+						{session?.templateId && (
+							<label className="flex items-start gap-3 rounded-lg bg-mono-700 p-3 text-sm">
+								<input type="checkbox" checked={addToRoutine} onChange={(event) => setAddToRoutine(event.target.checked)} className="mt-1 size-4 accent-lavender-400" />
+								<span>Also add to this routine for future workouts</span>
+							</label>
+						)}
+						<button
+							type="button"
+							disabled={!newExerciseId}
+							className={clsx(simpleBtn, "w-full disabled:cursor-not-allowed disabled:opacity-50")}
+							onClick={() => void confirmAddExercise()}
+						>
+							Add exercise
+						</button>
 					</section>
 				</div>
 			)}

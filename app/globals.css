@@ -99,6 +99,27 @@ input.number-input::-webkit-outer-spin-button {
   -webkit-appearance: none;
 }
 
+@keyframes session-view-enter {
+  from {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.session-view-enter {
+  animation: session-view-enter 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-view-enter {
+    animation: none;
+  }
+}
+
 @layer utilities {
   .scrollbar-soft {
     scrollbar-width: thin;
