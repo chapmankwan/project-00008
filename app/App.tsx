@@ -7,7 +7,7 @@ import { db, seedExercises } from "@/lib/db";
 import { startSync } from "@/lib/sync";
 import { useOnline } from "@/app/utilities";
 
-import { simpleBtn } from "@/components/ui";
+import { buttonClass } from "@/components/ui";
 
 import { ActiveSession, SelectorTab, WorkoutTiles } from "@/components";
 
@@ -133,7 +133,7 @@ export default function App() {
                     
                     <div className="flex flex-col items-center gap-4">
                         <button 
-                            className={clsx(simpleBtn, "w-full")}
+                            className={clsx(buttonClass, "w-full")}
                             onClick={() => setView({ kind: "workout" })}
                         >
                             Start a workout

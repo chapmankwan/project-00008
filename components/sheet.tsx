@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { db, put, type Exercise } from "@/lib/db";
 
 import clsx from "clsx";
-import { simpleBtn, simpleInput } from "./ui";
+import { buttonClass, simpleInput } from "./ui";
 
 interface SheetModel {
     onClose: () => void;
@@ -140,13 +140,13 @@ export const Sheet =({
 
                 {
                     !isCreatingExercise &&
-                    <button className={clsx(simpleBtn, "mx-6 mb-6")} onClick={() => setIsCreatingExercise(!isCreatingExercise)}>
+                    <button className={clsx(buttonClass, "mx-6")} onClick={() => setIsCreatingExercise(!isCreatingExercise)}>
                         create an exercise
                     </button>
                 }
                 {
                     isCreatingExercise &&
-                    <form onSubmit={onSubmitHandler} className="shrink-0 p-6 pt-0 flex flex-col gap-3">
+                    <form onSubmit={onSubmitHandler} className="shrink-0 px-6 flex flex-col gap-3">
                         <input required className="touch-manipulation rounded-lg border border-mono-500/30 bg-mono-700/60 p-3 text-sm text-mono-200 focus:outline-none focus:ring-2 focus:ring-lavender-300" value={customExercise} onChange={(e) => setCustomExercise(e.target.value)} placeholder="Not in the list? Create one" />
                         <div className="flex gap-2">
                             <input 
@@ -161,10 +161,10 @@ export const Sheet =({
                                 onChange={(e) => setSecondaryMuscles([...secondaryMuscles, e.target.value])} placeholder="Secondary muscle(s)" />
                         </div>
                         <div className="flex gap-2">
-                            <button type="button" className={simpleBtn} onClick={addCustomExercise}>
+                            <button type="button" className={buttonClass} onClick={addCustomExercise}>
                                 Create
                             </button>
-                            <button className={simpleBtn} onClick={() => setIsCreatingExercise(false)}>Close</button>
+                            <button className={buttonClass} onClick={() => setIsCreatingExercise(false)}>Close</button>
                         </div>
                     </form>
                 }

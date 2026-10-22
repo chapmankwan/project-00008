@@ -64,7 +64,7 @@ export function SwipeToDelete({ children, label, onDelete }: SwipeToDeleteProps)
         onPointerUp={finishSwipe}
         onPointerCancel={finishSwipe}
         style={{ transform: `translateX(${offset}px)`, transition: dragging ? "none" : "transform 180ms ease-out" }}
-        className="relative touch-pan-y bg-mono-700"
+        className="relative touch-pan-y bg-mono-800"
       >
         {children}
       </div>

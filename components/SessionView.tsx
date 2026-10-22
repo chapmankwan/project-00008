@@ -15,7 +15,7 @@ import {
 	type SessionSet,
 } from "@/lib/db";
 import { SET_TYPE_OPTIONS, SET_TYPE_SHORT_LABELS } from "@/lib/set-types";
-import { Num, simpleBtn } from "./ui";
+import { buttonClass, Num, refusalBtn } from "./ui";
 import { SwipeToDelete } from "./swipe-to-delete";
 import clsx from "clsx";
 import { EllipsisVerticalIcon } from "@/app/icons";
@@ -150,7 +150,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 					type="button"
 					aria-label="Go back"
 					title="Back"
-					className={clsx(simpleBtn, "grid size-11 place-items-center p-0")}
+					className={clsx(buttonClass, "grid size-11 place-items-center p-0")}
 					onClick={onBack}
 				>
 					<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-5">
@@ -163,12 +163,12 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 					{session && <p className="text-xs text-slate-400">{new Date(session.startedAt).toLocaleDateString()}</p>}
 				</div>
 				<div className="flex gap-2">
-					<button className={clsx(simpleBtn, "text-sm")} onClick={completeSession}>Finish</button>
+					<button className={clsx(buttonClass, "text-sm")} onClick={completeSession}>Finish</button>
 					<button
 						type="button"
 						aria-label="Delete workout"
 						title="Delete workout"
-						className={clsx(simpleBtn, "grid size-11 place-items-center p-0 text-blush-400")}
+						className={clsx(refusalBtn, "grid size-11 place-items-center p-0 text-mono-400")}
 						onClick={deleteSession}
 					>
 						<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-5">
@@ -199,7 +199,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 				<div className="space-y-2">
 				{[...groups.values()].map((group) => (
 					<div key={`group-${group[0].position}`}>
-				<div key={group[0].position} className="rounded-lg border border-mono-600 bg-mono-700 p-3">
+				<div key={group[0].position} className="p-3">
 					<div className="flex items-center justify-between gap-2">
 						<p className="min-w-0 flex-1 truncate font-medium">{names.get(group[0].exerciseId) ?? "Unknown exercise"}</p>
 						{session?.status !== "completed" && (
@@ -253,7 +253,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 										<Num label={`Set ${s.setNumber} weight`} hideLabel value={s.weight} onCommit={(v) => patch("sessionSets", s.id, { weight: v })} />
 										<Num label={`Set ${s.setNumber} reps`} hideLabel value={s.reps} onCommit={(v) => patch("sessionSets", s.id, { reps: Math.round(v) })} />
 										<input
-											type="checkbox" className="mb-2 size-5 justify-self-center accent-teal-500" aria-label={`Set ${s.setNumber} done`}
+											type="checkbox" className="mb-2 size-5 justify-self-center accent-lavender-500" aria-label={`Set ${s.setNumber} done`}
 											checked={s.done} onChange={(e) => patch("sessionSets", s.id, { done: e.target.checked })}
 										/>
 									</div>
@@ -262,14 +262,14 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 						))}
 					</ul>
 					<div className="mt-2 flex gap-2">
-						<button className={clsx(simpleBtn, "w-full")} onClick={() => addSet(group)}>Add set</button>
+						<button className={clsx(buttonClass, "w-full text-sm")} onClick={() => addSet(group)}>Add set</button>
 					</div>
 				</div>
 					</div>
 				))}
 				<button
 					type="button"
-					className={clsx(simpleBtn, "w-full")}
+					className={clsx(buttonClass, "w-full")}
 					disabled={session?.status === "completed"}
 					onClick={() => setIsAddingExercise(true)}
 				>
@@ -295,7 +295,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 							<button
 								key={option.value}
 								type="button"
-								className="min-h-11 w-full rounded-lg bg-mono-700 px-4 text-left hover:bg-mono-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
+								className="min-h-11 w-full rounded-lg bg-mono-800 px-4 text-left hover:bg-mono-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
 								onClick={() => void changeSetType(setOptionsTarget, option.value)}
 							>
 								{option.label}
@@ -323,7 +323,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 							<>
 								<button
 									type="button"
-									className="min-h-11 w-full rounded-lg bg-mono-700 px-4 text-left hover:bg-mono-600"
+									className="min-h-11 w-full rounded-lg bg-mono-800 px-4 text-left hover:bg-mono-600"
 									onClick={() => setExerciseAction({ ...exerciseAction, mode: "replace" })}
 								>
 									Replace exercise
@@ -363,7 +363,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 										))}
 								</ul>
 								{session?.templateId && (
-									<label className="flex items-start gap-3 rounded-lg bg-mono-700 p-3 text-sm">
+									<label className="flex items-start gap-3 rounded-lg bg-mono-800 p-3 text-sm">
 										<input type="checkbox" checked={updateRoutineToo} onChange={(event) => setUpdateRoutineToo(event.target.checked)} className="mt-1 size-4 accent-lavender-400" />
 										<span>Also use this exercise in future workouts from this routine</span>
 									</label>
@@ -371,7 +371,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 								<button
 									type="button"
 									disabled={!replacementExerciseId}
-									className={clsx(simpleBtn, "w-full disabled:cursor-not-allowed disabled:opacity-50")}
+									className={clsx(buttonClass, "w-full disabled:cursor-not-allowed disabled:opacity-50")}
 									onClick={() => void confirmExerciseReplacement()}
 								>
 									Replace exercise
@@ -426,7 +426,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 						<button
 							type="button"
 							disabled={!newExerciseId}
-							className={clsx(simpleBtn, "w-full disabled:cursor-not-allowed disabled:opacity-50")}
+							className={clsx(buttonClass, "w-full disabled:cursor-not-allowed disabled:opacity-50")}
 							onClick={() => void confirmAddExercise()}
 						>
 							Add exercise

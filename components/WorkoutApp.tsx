@@ -6,7 +6,7 @@ import { db, put, startSession } from "@/lib/db";
 import { startSync } from "@/lib/sync";
 import TemplateView from "./TemplateView";
 import SessionView from "./SessionView";
-import { field, ghost, primary } from "./ui";
+import { field, buttonClass } from "./ui";
 
 type View = { kind: "home" } | { kind: "template"; id: string } | { kind: "session"; id: string };
 
@@ -82,8 +82,8 @@ function Home({ onOpenTemplate, onOpenSession }: { onOpenTemplate: (id: string) 
         <ul className="space-y-2">
           {templates.map((t) => (
             <li key={t.id} className="flex gap-2">
-              <button className={`${ghost} flex-1 text-left`} onClick={() => onOpenTemplate(t.id)}>{t.name}</button>
-              <button className={primary} onClick={async () => onOpenSession(await startSession(t.id))}>Start</button>
+              <button className={`${buttonClass} flex-1 text-left`} onClick={() => onOpenTemplate(t.id)}>{t.name}</button>
+              <button className={buttonClass} onClick={async () => onOpenSession(await startSession(t.id))}>Start</button>
             </li>
           ))}
         </ul>
@@ -92,7 +92,7 @@ function Home({ onOpenTemplate, onOpenSession }: { onOpenTemplate: (id: string) 
             <span className="sr-only">New template name</span>
             <input className={field} value={name} onChange={(e) => setName(e.target.value)} placeholder="New template, e.g. Leg day" />
           </label>
-          <button className={ghost}>Add</button>
+          <button className={buttonClass}>Add</button>
         </form>
       </section>
 
@@ -102,7 +102,7 @@ function Home({ onOpenTemplate, onOpenSession }: { onOpenTemplate: (id: string) 
         <ul className="space-y-2">
           {sessions.map((s) => (
             <li key={s.id}>
-              <button className={`${ghost} flex w-full justify-between text-left`} onClick={() => onOpenSession(s.id)}>
+              <button className={`${buttonClass} flex w-full justify-between text-left`} onClick={() => onOpenSession(s.id)}>
                 <span>{s.name}</span>
                 <span className="text-slate-400">
                   {new Date(s.startedAt).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
