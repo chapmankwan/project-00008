@@ -214,7 +214,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 							</button>
 						)}
 					</div>
-					<div className="mt-1 grid grid-cols-[2.5rem_repeat(3,minmax(0,1fr))_2.5rem] gap-2 px-0.5 text-[10px] leading-tight text-mono-400">
+					<div className="mt-1 grid grid-cols-[2rem_repeat(3,minmax(0,1fr))_2rem] gap-2 px-0.5 text-[10px] leading-tight text-mono-400">
 						<span className="text-center">Set</span>
 						<span className="pl-3">Prev</span>
 						<span className="pl-3">Weight</span>
@@ -228,12 +228,12 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 									label={`set ${s.setNumber} of ${names.get(s.exerciseId) ?? "exercise"}`}
 									onDelete={() => void deleteSet(group, s)}
 								>
-									<div className="grid grid-cols-[2.5rem_repeat(3,minmax(0,1fr))_2.5rem] items-end gap-2 p-0.5">
+									<div className="grid grid-cols-[2rem_repeat(3,minmax(0,1fr))_2rem] items-end gap-2 p-0.5">
 										<button
 											type="button"
 											aria-label={`Set ${s.setNumber} type${s.setType ? `: ${s.setType}` : ""}`}
 											onClick={() => setSetOptionsTarget(s)}
-											className="mb-1 flex size-10 flex-col items-center justify-center rounded-lg bg-mono-600 text-sm font-medium text-mono-100 hover:bg-mono-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
+											className="mb-1 flex size-7 flex-col items-center justify-center rounded-md bg-mono-600 text-[10px] font-medium text-mono-100 hover:bg-mono-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
 										>
 											{s.setNumber}
 											{s.setType && s.setType !== "normal" && (
@@ -253,7 +253,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 										<Num label={`Set ${s.setNumber} weight`} hideLabel value={s.weight} onCommit={(v) => patch("sessionSets", s.id, { weight: v })} />
 										<Num label={`Set ${s.setNumber} reps`} hideLabel value={s.reps} onCommit={(v) => patch("sessionSets", s.id, { reps: Math.round(v) })} />
 										<input
-											type="checkbox" className="mb-2.5 size-6 justify-self-center accent-teal-500" aria-label={`Set ${s.setNumber} done`}
+											type="checkbox" className="mb-2 size-5 justify-self-center accent-teal-500" aria-label={`Set ${s.setNumber} done`}
 											checked={s.done} onChange={(e) => patch("sessionSets", s.id, { done: e.target.checked })}
 										/>
 									</div>
