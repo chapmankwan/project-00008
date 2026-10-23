@@ -4,7 +4,8 @@ import { useState, type FormEvent } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, put } from "@/lib/db";
 import TemplateView from "@/components/TemplateView";
-import { field, simpleBtn } from "@/components/ui";
+import { field, btn, acceptanceBtn } from "@/components/ui";
+import clsx from "clsx";
 
 export const WorkoutView = ({ onBack, onStartSession }: {
     id: string;
@@ -30,8 +31,6 @@ export const WorkoutView = ({ onBack, onStartSession }: {
         setEditingTemplateId(id);
     };
 
-
-
     if (editingTemplateId) {
         return (
             <TemplateView
@@ -55,7 +54,7 @@ export const WorkoutView = ({ onBack, onStartSession }: {
                 <p className="mt-1 text-sm text-mono-300">Create a routine and choose the exercises you want to train.</p>
             </header>
 
-            <button className={simpleBtn} onClick={onClickEmptyRoutine}>
+            <button className={btn} onClick={onClickEmptyRoutine}>
                 Begin empty routine
             </button>
 
@@ -70,7 +69,7 @@ export const WorkoutView = ({ onBack, onStartSession }: {
                         required
                     />
                 </label>
-                <button type="submit" className={simpleBtn}>Create</button>
+                <button type="submit" className={acceptanceBtn}>Create</button>
             </form>
 
             {templates.length === 0 ? (
@@ -114,7 +113,7 @@ export const WorkoutView = ({ onBack, onStartSession }: {
                 </ul>
             )}
 
-            <button type="button" className={`${simpleBtn} w-full`} onClick={onBack}>
+            <button type="button" className={clsx(btn, "w-full")} onClick={onBack}>
                 Back to home
             </button>
         </section>

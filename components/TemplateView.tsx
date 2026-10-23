@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { db, patch, put, putMany, remove, startSession, type TemplateExercise, type TemplateTargetSet } from "@/lib/db";
+import { db, patch, putMany, remove, startSession, type TemplateExercise, type TemplateTargetSet } from "@/lib/db";
 import { SET_TYPE_OPTIONS, SET_TYPE_SHORT_LABELS, type SetType } from "@/lib/set-types";
-import { Num, field, ghost, primary, simpleBtn } from "./ui";
+import { Num, baseBtn } from "./ui";
 import { Sheet } from "./sheet";
 
 import clsx from "clsx";
@@ -79,10 +79,10 @@ export default function TemplateView({ id, onBack, onStartSession }: {
     <section className="mt-4 space-y-4 px-1 overflow-hidden">
       <div className="flex items-center justify-between gap-2">
         <h2 className="flex-1 truncate text-lg font-semibold">{template?.name}</h2>
-        <button className={simpleBtn} onClick={onBack}>
+        <button className={baseBtn} onClick={onBack}>
           Back
         </button>
-        <button className={clsx(simpleBtn, "text-blush-500")} onClick={deleteTemplate}>
+        <button className={clsx(baseBtn, "text-blush-500")} onClick={deleteTemplate}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-6 w-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
           </svg>
@@ -91,14 +91,14 @@ export default function TemplateView({ id, onBack, onStartSession }: {
 
       <button
         type="button"
-        className={clsx(simpleBtn, "w-full disabled:border-0 disabled:text-mono-700 cursor-not-allowed")}
+        className={clsx(baseBtn, "w-full disabled:border-0 disabled:text-mono-700 disabled:bg-mono-700/50 cursor-not-allowed")}
         disabled={entries.length === 0}
         onClick={() => void startWorkout()}
       >
         Start workout
       </button>
 
-      <button className={clsx(simpleBtn, "w-full")} onClick={() => setIsSheetOpen(true)}>
+      <button className={clsx(baseBtn, "w-full")} onClick={() => setIsSheetOpen(true)}>
         Add Exercises
       </button>
 
@@ -176,7 +176,7 @@ export default function TemplateView({ id, onBack, onStartSession }: {
                 </ul>
                 <button
                   type="button"
-                  className={clsx(simpleBtn, "w-full")}
+                  className={clsx(baseBtn, "w-full")}
                   onClick={() => void updateTargetSets(en, [...targetSets, { ...targetSets[targetSets.length - 1] }])}
                 >
                   Add set
