@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { db, put, type Exercise } from "@/lib/db";
 
 import clsx from "clsx";
-import { buttonClass, simpleInput } from "./ui";
+import { baseBtn, simpleInput } from "./ui";
 
 interface SheetModel {
     onClose: () => void;
@@ -140,7 +140,7 @@ export const Sheet =({
 
                 {
                     !isCreatingExercise &&
-                    <button className={clsx(buttonClass, "mx-6")} onClick={() => setIsCreatingExercise(!isCreatingExercise)}>
+                    <button className={clsx(baseBtn, "mx-6")} onClick={() => setIsCreatingExercise(!isCreatingExercise)}>
                         create an exercise
                     </button>
                 }
@@ -161,10 +161,10 @@ export const Sheet =({
                                 onChange={(e) => setSecondaryMuscles([...secondaryMuscles, e.target.value])} placeholder="Secondary muscle(s)" />
                         </div>
                         <div className="flex gap-2">
-                            <button type="button" className={buttonClass} onClick={addCustomExercise}>
+                            <button type="button" className={baseBtn} onClick={addCustomExercise}>
                                 Create
                             </button>
-                            <button className={buttonClass} onClick={() => setIsCreatingExercise(false)}>Close</button>
+                            <button className={baseBtn} onClick={() => setIsCreatingExercise(false)}>Close</button>
                         </div>
                     </form>
                 }
