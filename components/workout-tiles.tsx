@@ -22,7 +22,7 @@ export const WorkoutTiles = ({ label, startedAt, durationSeconds, totalVolume, r
             hover:bg-mono-700/60
             text-left shadow-lg shadow-mono-950/20"
         >
-            <h3 aria-label="workout-1" className="text-sm font-semibold">{label}</h3>
+            <h3 aria-label="workout-1" className="text-base font-semibold">{label}</h3>
             <p className="text-xs text-mono-400">
                 {new Date(startedAt).toLocaleDateString()}
             </p>
@@ -32,7 +32,7 @@ export const WorkoutTiles = ({ label, startedAt, durationSeconds, totalVolume, r
                 <span>Volume </span>
                 <span>Records</span>
             </div>
-            <div className="grid grid-cols-3 gap-2 text-sm text-mono-200">
+            <div className="grid grid-cols-3 gap-2 text-base text-mono-200">
                 <span>{formatDuration(durationSeconds)}</span>
                 <span>{totalVolume === undefined ? "—" : `${totalVolume.toLocaleString()} lbs`}</span>
                 <span className="inline-flex items-center gap-1">
