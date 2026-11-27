@@ -5,10 +5,17 @@ import type { SetType } from "./set-types";
 export type TableName = "exercises" | "templates" | "templateExercises" | "sessions" | "sessionSets";
 type Rec = { id: string } & Record<string, unknown>;
 
-export type Exercise = { id: string; name: string; muscle: string; updatedAt?: number };
+export type ExerciseType = "strength" | "cardio";
+export type Exercise = { id: string; name: string; muscle: string; type?: ExerciseType; updatedAt?: number };
 export type Template = { id: string; name: string; updatedAt: number };
-export type TemplateTargetSet = { weight: number; reps: number; setType?: SetType };
-// A template exercise stores each set's target weight and reps; legacy scalar fields are kept readable.
+export type TemplateTargetSet = {
+  weight: number;
+  reps: number;
+  durationMinutes?: number;
+  distanceMiles?: number;
+  setType?: SetType;
+};
+// Template entries store planned strength sets or cardio activities; legacy scalar fields remain readable.
 export type TemplateExercise = {
   id: string;
   templateId: string;
@@ -40,6 +47,8 @@ export type SessionSet = {
   setNumber: number;
   weight: number;
   reps: number;
+  durationMinutes?: number;
+  distanceMiles?: number;
   done: boolean;
   setType?: SetType;
   updatedAt: number;
@@ -82,7 +91,7 @@ interface ExerciseCatalogEntry {
   equipment: string;
 }
 
-type ExerciseCatalog = Record<string, ExerciseCatalogEntry[]>;
+type ExerciseCatalog = Record<ExerciseType, ExerciseCatalogEntry[]>;
 const catalog: ExerciseCatalog = exerciseCatalog;
 
 // Every write also enqueues outbox items, atomically, so nothing is lost offline.
@@ -191,10 +200,12 @@ export async function replaceSessionExercise(
 }
 
 export async function addExerciseToSession(sessionId: string, exerciseId: string, updateTemplate: boolean) {
-  await db.transaction("rw", [db.sessions, db.sessionSets, db.templateExercises, db.outbox], async () => {
+  await db.transaction("rw", [db.exercises, db.sessions, db.sessionSets, db.templateExercises, db.outbox], async () => {
     const session = await db.sessions.get(sessionId);
     if (!session || session.status === "completed") return;
 
+    const exercise = await db.exercises.get(exerciseId);
+    const isCardio = exercise?.type === "cardio";
     const sessionSets = await db.sessionSets.where("sessionId").equals(sessionId).toArray();
     const position = Math.max(-1, ...sessionSets.map((set) => set.position)) + 1;
     const last = (await lastSets(exerciseId)).at(-1);
@@ -205,8 +216,9 @@ export async function addExerciseToSession(sessionId: string, exerciseId: string
       exerciseId,
       position,
       setNumber: 1,
-      weight: last?.weight ?? 0,
-      reps: last?.reps ?? 10,
+      weight: isCardio ? 0 : last?.weight ?? 0,
+      reps: isCardio ? 0 : last?.reps ?? 10,
+      ...(isCardio && { durationMinutes: last?.durationMinutes ?? 0, distanceMiles: last?.distanceMiles ?? 0 }),
       done: false,
       setType: "normal",
       updatedAt: timestamp,
@@ -222,7 +234,12 @@ export async function addExerciseToSession(sessionId: string, exerciseId: string
           templateId: session.templateId,
           exerciseId,
           position: Math.max(-1, ...entries.map((entry) => entry.position)) + 1,
-          targetSets: [{ weight: last?.weight ?? 0, reps: last?.reps ?? 10, setType: "normal" }],
+          targetSets: [{
+            weight: isCardio ? 0 : last?.weight ?? 0,
+            reps: isCardio ? 0 : last?.reps ?? 10,
+            ...(isCardio && { durationMinutes: last?.durationMinutes ?? 0, distanceMiles: last?.distanceMiles ?? 0 }),
+            setType: "normal",
+          }],
           updatedAt: timestamp,
         };
         await db.templateExercises.add(templateEntry);
@@ -249,12 +266,13 @@ async function lastSets(exerciseId: string) {
 
 export async function startSession(templateId: string): Promise<string> {
   const sessionId = crypto.randomUUID();
-  await db.transaction("rw", [db.templates, db.templateExercises, db.sessions, db.sessionSets, db.outbox], async () => {
+  await db.transaction("rw", [db.exercises, db.templates, db.templateExercises, db.sessions, db.sessionSets, db.outbox], async () => {
     const template = await db.templates.get(templateId);
     const entries = await db.templateExercises.where("templateId").equals(templateId).sortBy("position");
     const sets: Rec[] = [];
     for (const en of entries) {
       const last = await lastSets(en.exerciseId);
+      const isCardio = (await db.exercises.get(en.exerciseId))?.type === "cardio";
       const targetSets: TemplateTargetSet[] = en.targetSets?.length
         ? en.targetSets
         : Array.from({ length: Math.max(1, en.sets ?? 3) }, () => ({ weight: 0, reps: en.reps ?? 10 }));
@@ -262,8 +280,12 @@ export async function startSession(templateId: string): Promise<string> {
         const previousSet = last[index] ?? last[last.length - 1];
         sets.push({
           id: crypto.randomUUID(), sessionId, exerciseId: en.exerciseId, position: en.position, setNumber: index + 1,
-          weight: target.weight > 0 ? target.weight : previousSet?.weight ?? 0,
-          reps: target.reps || previousSet?.reps || 10,
+          weight: isCardio ? 0 : target.weight > 0 ? target.weight : previousSet?.weight ?? 0,
+          reps: isCardio ? 0 : target.reps || previousSet?.reps || 10,
+          ...(isCardio && {
+            durationMinutes: target.durationMinutes ?? previousSet?.durationMinutes ?? 0,
+            distanceMiles: target.distanceMiles ?? previousSet?.distanceMiles ?? 0,
+          }),
           setType: target.setType ?? "normal",
           done: false,
         });
@@ -342,17 +364,25 @@ export async function finishSession(id: string) {
 // Stable catalog ids keep references consistent across devices. Catalog data is bundled locally
 // for offline use and is not queued for sync. Add missing entries without overwriting user data.
 export async function seedExercises() {
-  const records: Exercise[] = Object.values(catalog).flat().map((entry) => ({
+  const records: Exercise[] = (["strength", "cardio"] as const).flatMap((type) => catalog[type].map((entry) => ({
     id: entry.id,
     name: entry.variation ? `${entry.name} (${entry.variation})` : entry.name,
     muscle: entry.primary_muscles.join(", "),
+    type,
     updatedAt: 0,
-  }));
-  const existing = new Set(
-    (await db.exercises.bulkGet(records.map(({ id }) => id)))
-      .filter((exercise): exercise is Exercise => exercise !== undefined)
-      .map(({ id }) => id),
-  );
+  })));
+  const existingRecords = (await db.exercises.bulkGet(records.map(({ id }) => id)))
+    .filter((exercise): exercise is Exercise => exercise !== undefined);
+  const existing = new Map(existingRecords.map((exercise) => [exercise.id, exercise]));
   const missing = records.filter(({ id }) => !existing.has(id));
-  if (missing.length > 0) await db.exercises.bulkAdd(missing);
+  const missingTypes = records.flatMap((record) => {
+    const stored = existing.get(record.id);
+    return stored && stored.type === undefined ? [{ ...stored, type: record.type }] : [];
+  });
+  if (missing.length === 0 && missingTypes.length === 0) return;
+
+  await db.transaction("rw", db.exercises, async () => {
+    if (missing.length > 0) await db.exercises.bulkAdd(missing);
+    if (missingTypes.length > 0) await db.exercises.bulkPut(missingTypes);
+  });
 }

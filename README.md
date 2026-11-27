@@ -16,5 +16,6 @@ Installability: DevTools > Application > Manifest.
 - In-app install prompt, update-available toast
 
 ## Data model
-templates + templateExercises (plan: target sets/reps) -> startSession() copies them into sessions + sessionSets (log: per-set weight, reps, done).
+templates + templateExercises (plan: strength targets or cardio duration/distance) -> startSession() copies them into sessions + sessionSets (logged activity metrics and completion).
+Exercises are categorized as strength or cardio; cardio activities track minutes and miles instead of weight and reps.
 Every write also lands in `outbox`, which `lib/sync.ts` flushes to `/api/sync`.
