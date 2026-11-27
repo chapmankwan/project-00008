@@ -9,14 +9,14 @@ export const baseBtn = clsx(btn, "bg-mono-600 hover:bg-mono-700")
 export const refusalBtn = "cursor-pointer font-medium rounded-lg px-3 py-1 bg-blush-600/50 hover:bg-blush-600/70";
 
 // Commits on blur so we don't queue a sync item per keystroke.
-export function Num({ label, value, hideLabel = false, onCommit }: {
-  label: string; value: number; hideLabel?: boolean; onCommit: (v: number) => void;
+export function Num({ label, value, hideLabel = false, step = 1, decimalPlaces = 0, onCommit }: {
+  label: string; value: number; hideLabel?: boolean; step?: number; decimalPlaces?: number; onCommit: (v: number) => void;
 }) {
   return (
     <label className="flex flex-col gap-1 text-xs text-mono-400">
       <span className={hideLabel ? "sr-only" : ""}>{label}</span>
       <input
-        type="number" inputMode="numeric" min={0} step={1} defaultValue={value} className={`${field} number-input appearance-none border-mono-600`}
+        type="number" inputMode={decimalPlaces > 0 ? "decimal" : "numeric"} min={0} step={step} defaultValue={value} className={`${field} number-input appearance-none border-mono-600`}
         onBlur={(e) => {
           const rawValue = e.target.value;
           if (rawValue === "") {
@@ -28,9 +28,9 @@ export function Num({ label, value, hideLabel = false, onCommit }: {
             e.target.value = String(value);
             return;
           }
-          const wholeNumber = Math.round(parsedValue);
-          e.target.value = String(wholeNumber);
-          if (wholeNumber !== value) onCommit(wholeNumber);
+          const normalizedValue = Number(parsedValue.toFixed(decimalPlaces));
+          e.target.value = String(normalizedValue);
+          if (normalizedValue !== value) onCommit(normalizedValue);
         }}
       />
     </label>

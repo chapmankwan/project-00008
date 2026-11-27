@@ -26,6 +26,7 @@ export default function TemplateView({ id, onBack, onStartSession }: {
   const template = useLiveQuery(() => db.templates.get(id), [id]);
   const entries = useLiveQuery(() => db.templateExercises.where("templateId").equals(id).sortBy("position"), [id], []);
   const exercises = useLiveQuery(() => db.exercises.orderBy("name").toArray(), [], []);
+  const exerciseTypes = new Map(exercises.map((exercise) => [exercise.id, exercise.type ?? "strength"]));
   // const [pick, setPick] = useState("");
   // const [custom, setCustom] = useState("");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -38,13 +39,20 @@ export default function TemplateView({ id, onBack, onStartSession }: {
     if (newExerciseIds.length === 0) return;
 
     const firstPosition = Math.max(-1, ...entries.map((entry) => entry.position)) + 1;
-    await putMany("templateExercises", newExerciseIds.map((exerciseId, index) => ({
-		id: crypto.randomUUID(),
-		templateId: id,
-		exerciseId,
-		position: firstPosition + index,
-		targetSets: [{ weight: 0, reps: 10 }],
-    })));
+    await putMany("templateExercises", newExerciseIds.map((exerciseId, index) => {
+      const isCardio = exerciseTypes.get(exerciseId) === "cardio";
+      return {
+        id: crypto.randomUUID(),
+        templateId: id,
+        exerciseId,
+        position: firstPosition + index,
+        targetSets: [{
+          weight: 0,
+          reps: isCardio ? 0 : 10,
+          ...(isCardio && { durationMinutes: 0, distanceMiles: 0 }),
+        }],
+      };
+    }));
   };
 
   async function updateTargetSets(entry: TemplateExercise, targetSets: TemplateTargetSet[]) {
@@ -91,7 +99,7 @@ export default function TemplateView({ id, onBack, onStartSession }: {
 
       <button
         type="button"
-        className={clsx(baseBtn, "w-full disabled:border-0 disabled:text-mono-700 disabled:bg-mono-700/50 cursor-not-allowed")}
+        className={clsx(baseBtn, "w-full disabled:border-0 disabled:text-mono-700 disabled:bg-mono-700/50 disabled:cursor-not-allowed")}
         disabled={entries.length === 0}
         onClick={() => void startWorkout()}
       >
@@ -108,10 +116,14 @@ export default function TemplateView({ id, onBack, onStartSession }: {
         <ul className="space-y-3">
           {entries.map((en) => {
             const targetSets = getTargetSets(en);
+            const isCardio = exerciseTypes.get(en.exerciseId) === "cardio";
             return (
               <li key={en.id} className="rounded-lg border border-mono-600 bg-mono-700 p-3">
                 <div className="flex items-center justify-between">
-                  <p className="font-medium">{names.get(en.exerciseId) ?? "Unknown exercise"}</p>
+                  <p className="min-w-0 flex-1 truncate font-medium">{names.get(en.exerciseId) ?? "Unknown exercise"}</p>
+                  <span className="shrink-0 rounded bg-mono-600 px-2 py-0.5 text-[10px] text-mono-300">
+                    {isCardio ? "Cardio" : "Strength"}
+                  </span>
                   <button
                     type="button"
                     aria-label={`Remove ${names.get(en.exerciseId) ?? "exercise"} from routine`}
@@ -122,46 +134,90 @@ export default function TemplateView({ id, onBack, onStartSession }: {
                   </button>
                 </div>
                 <div className="grid grid-cols-[2.5rem_1fr_1fr] items-end gap-2">
-					<span className="text-xs font-semibold text-mono-300">Set</span>
-					<span className="text-xs font-semibold text-mono-300">Weight</span>
-					<span className="text-xs font-semibold text-mono-300">Reps</span>
-				</div>
+                  <span className="text-xs font-semibold text-mono-300">{isCardio ? "Activity" : "Set"}</span>
+                  {isCardio ? (
+                    <>
+                      <span className="text-xs font-semibold text-mono-300">Duration (min)</span>
+                      <span className="text-xs font-semibold text-mono-300">Distance (mi)</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-xs font-semibold text-mono-300">Weight</span>
+                      <span className="text-xs font-semibold text-mono-300">Reps</span>
+                    </>
+                  )}
+                </div>
                 <ul className="my-2 space-y-2">
                   {targetSets.map((target, index) => (
                     <li key={`${en.id}-target-${index}`} className="grid grid-cols-[2.5rem_1fr_1fr] items-center gap-2">
-                      <button
-                        type="button"
-                        aria-label={`Set ${index + 1} type${target.setType ? `: ${target.setType}` : ""}`}
-                        onClick={() => setSetTypeTarget({ entryId: en.id, setIndex: index })}
-                        className="mb-1 flex min-h-10 flex-col items-center justify-center rounded-lg bg-mono-600 text-base font-medium text-mono-100 hover:bg-mono-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
-                      >
-                        {index + 1}
-                        {target.setType && target.setType !== "normal" && (
-                          <span className="text-[8px] leading-none text-lavender-200">
-                            {SET_TYPE_SHORT_LABELS[target.setType]}
-                          </span>
-                        )}
-                      </button>
-                      <Num
-                        label="Weight (lbs)"
-						            hideLabel
-                        value={target.weight}
-                        onCommit={(weight) => {
-                          const next = [...targetSets];
-                          next[index] = { ...target, weight };
-                          void updateTargetSets(en, next);
-                        }}
-                      />
-                      <Num
-                        label="Target reps"
-						            hideLabel
-                        value={target.reps}
-                        onCommit={(reps) => {
-                          const next = [...targetSets];
-                          next[index] = { ...target, reps: Math.round(reps) };
-                          void updateTargetSets(en, next);
-                        }}
-                      />
+                      {isCardio ? (
+                        <span className="grid min-h-10 place-items-center rounded-lg bg-mono-600 text-xs font-medium text-mono-100">
+                          A{index + 1}
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          aria-label={`Set ${index + 1} type${target.setType ? `: ${target.setType}` : ""}`}
+                          onClick={() => setSetTypeTarget({ entryId: en.id, setIndex: index })}
+                          className="mb-1 flex min-h-10 flex-col items-center justify-center rounded-lg bg-mono-600 text-base font-medium text-mono-100 hover:bg-mono-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
+                        >
+                          {index + 1}
+                          {target.setType && target.setType !== "normal" && (
+                            <span className="text-[8px] leading-none text-lavender-200">
+                              {SET_TYPE_SHORT_LABELS[target.setType]}
+                            </span>
+                          )}
+                        </button>
+                      )}
+                      {isCardio ? (
+                        <>
+                          <Num
+                            label={`Activity ${index + 1} duration in minutes`}
+                            hideLabel
+                            value={target.durationMinutes ?? 0}
+                            onCommit={(durationMinutes) => {
+                              const next = [...targetSets];
+                              next[index] = { ...target, durationMinutes };
+                              void updateTargetSets(en, next);
+                            }}
+                          />
+                          <Num
+                            label={`Activity ${index + 1} distance in miles`}
+                            hideLabel
+                            step={0.1}
+                            decimalPlaces={1}
+                            value={target.distanceMiles ?? 0}
+                            onCommit={(distanceMiles) => {
+                              const next = [...targetSets];
+                              next[index] = { ...target, distanceMiles };
+                              void updateTargetSets(en, next);
+                            }}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <Num
+                            label="Weight (lbs)"
+                            hideLabel
+                            value={target.weight}
+                            onCommit={(weight) => {
+                              const next = [...targetSets];
+                              next[index] = { ...target, weight };
+                              void updateTargetSets(en, next);
+                            }}
+                          />
+                          <Num
+                            label="Target reps"
+                            hideLabel
+                            value={target.reps}
+                            onCommit={(reps) => {
+                              const next = [...targetSets];
+                              next[index] = { ...target, reps: Math.round(reps) };
+                              void updateTargetSets(en, next);
+                            }}
+                          />
+                        </>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -170,7 +226,7 @@ export default function TemplateView({ id, onBack, onStartSession }: {
                   className={clsx(baseBtn, "w-full")}
                   onClick={() => void updateTargetSets(en, [...targetSets, { ...targetSets[targetSets.length - 1] }])}
                 >
-                  Add set
+                  {isCardio ? "Add activity" : "Add set"}
                 </button>
               </li>
             );

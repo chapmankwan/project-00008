@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { db, put, type Exercise } from "@/lib/db";
+import { db, put, type Exercise, type ExerciseType } from "@/lib/db";
 import { baseBtn, simpleInput } from "@/components/ui";
 import { Sheet } from "./index";
 
@@ -35,6 +35,7 @@ export function AddExercisesSheet({
   const [customName, setCustomName] = useState("");
   const [primaryMuscles, setPrimaryMuscles] = useState("");
   const [secondaryMuscles, setSecondaryMuscles] = useState("");
+  const [exerciseType, setExerciseType] = useState<ExerciseType>("strength");
   const [updateRoutine, setUpdateRoutine] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -66,6 +67,7 @@ export function AddExercisesSheet({
       id: crypto.randomUUID(),
       name,
       muscle: muscles,
+      type: exerciseType,
       updatedAt: Date.now(),
     };
     await put("exercises", exercise);
@@ -76,6 +78,7 @@ export function AddExercisesSheet({
     setCustomName("");
     setPrimaryMuscles("");
     setSecondaryMuscles("");
+    setExerciseType("strength");
     setCreating(false);
   }
 
@@ -142,6 +145,17 @@ export function AddExercisesSheet({
               placeholder="Secondary muscle(s)"
               className={simpleInput}
             />
+            <label className="flex flex-col gap-1 text-xs text-mono-400">
+              <span>Exercise type</span>
+              <select
+                value={exerciseType}
+                onChange={(event) => setExerciseType(event.target.value as ExerciseType)}
+                className={simpleInput}
+              >
+                <option value="strength">Strength</option>
+                <option value="cardio">Cardio</option>
+              </select>
+            </label>
             <div className="flex gap-2">
               <button type="submit" className={`${baseBtn} flex-1`}>Create exercise</button>
               <button type="button" className={`${baseBtn} flex-1`} onClick={() => setCreating(false)}>Cancel</button>
@@ -173,8 +187,11 @@ export function AddExercisesSheet({
                   onChange={(event) => toggleExercise(exercise.id, event.target.checked)}
                   className="size-5 shrink-0 cursor-pointer rounded border-mono-500/30 bg-mono-700/60 text-lavender-400 focus:ring-lavender-300"
                 />
-                <span className="text-base text-mono-200">{exercise.name}</span>
-                <span className="ml-auto text-xs text-mono-400">{exercise.muscle}</span>
+                <span className="min-w-0 flex-1 text-base text-mono-200">{exercise.name}</span>
+                <span className="shrink-0 rounded bg-mono-600 px-2 py-0.5 text-[10px] text-mono-300">
+                  {exercise.type === "cardio" ? "Cardio" : "Strength"}
+                </span>
+                <span className="max-w-[35%] text-right text-xs text-mono-400">{exercise.muscle}</span>
               </label>
             </li>
           ))}

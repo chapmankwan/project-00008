@@ -45,6 +45,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 		return new Map(priorSets.map((set) => [`${set.exerciseId}:${set.setNumber}`, set]));
 	}, [id, session?.templateId, session?.startedAt], new Map<string, SessionSet>());
 	const names = new Map(exercises.map((e) => [e.id, e.name]));
+	const exerciseTypes = new Map(exercises.map((e) => [e.id, e.type ?? "strength"]));
 
 	const groups = new Map<number, SessionSet[]>();
 	for (const s of [...sets].sort((a, b) => a.position - b.position || a.setNumber - b.setNumber)) {
@@ -72,6 +73,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 		await put("sessionSets", {
 			id: crypto.randomUUID(), sessionId: id, exerciseId: last.exerciseId, position: last.position,
 			setNumber: last.setNumber + 1, weight: last.weight, reps: last.reps, done: false,
+			durationMinutes: last.durationMinutes, distanceMiles: last.distanceMiles,
 			setType: "normal",
 		});
 	}
@@ -182,11 +184,16 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 			<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-mono-700">
 				{groups.size === 0 && <p className="text-mono-400">This template had no exercises. Add some to the template, then start again.</p>}
 				<div className="space-y-2">
-				{[...groups.values()].map((group) => (
+				{[...groups.values()].map((group) => {
+					const isCardio = exerciseTypes.get(group[0].exerciseId) === "cardio";
+					return (
 					<div key={`group-${group[0].position}`}>
-				<div key={group[0].position} className="p-3">
+				<div className="p-3">
 					<div className="flex items-center justify-between gap-2">
 						<p className="min-w-0 flex-1 truncate font-medium">{names.get(group[0].exerciseId) ?? "Unknown exercise"}</p>
+						<span className="shrink-0 rounded bg-mono-600 px-2 py-0.5 text-[10px] text-mono-300">
+							{isCardio ? "Cardio" : "Strength"}
+						</span>
 						{session?.status !== "completed" && (
 							<button
 								type="button"
@@ -199,21 +206,35 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 							</button>
 						)}
 					</div>
-					<div className="mt-1 grid grid-cols-[2rem_repeat(3,minmax(0,1fr))_2rem] gap-2 px-0.5 text-[10px] leading-tight text-mono-400">
-						<span className="text-center">Set</span>
-						<span className="pl-3">Prev</span>
-						<span className="pl-3">Weight</span>
-						<span className="pl-3">Reps</span>
+					<div className={`mt-1 grid ${isCardio ? "grid-cols-[2rem_repeat(2,minmax(0,1fr))_2rem]" : "grid-cols-[2rem_repeat(3,minmax(0,1fr))_2rem]"} gap-2 px-0.5 text-[10px] leading-tight text-mono-400`}>
+						<span className="text-center">{isCardio ? "Activity" : "Set"}</span>
+						{isCardio ? (
+							<>
+								<span className="pl-3">Duration (min)</span>
+								<span className="pl-3">Distance (mi)</span>
+							</>
+						) : (
+							<>
+								<span className="pl-3">Prev</span>
+								<span className="pl-3">Weight</span>
+								<span className="pl-3">Reps</span>
+							</>
+						)}
 						<span aria-hidden="true" />
 					</div>
 					<ul className="mt-1 space-y-1">
 						{group.map((s) => (
 							<li key={s.id}>
 								<SwipeToDelete
-									label={`set ${s.setNumber} of ${names.get(s.exerciseId) ?? "exercise"}`}
+									label={`${isCardio ? "activity" : "set"} ${s.setNumber} of ${names.get(s.exerciseId) ?? "exercise"}`}
 									onDelete={() => void deleteSet(group, s)}
 								>
-									<div className="grid grid-cols-[2rem_repeat(3,minmax(0,1fr))_2rem] items-center gap-2 p-0.5">
+									<div className={`grid ${isCardio ? "grid-cols-[2rem_repeat(2,minmax(0,1fr))_2rem]" : "grid-cols-[2rem_repeat(3,minmax(0,1fr))_2rem]"} items-center gap-2 p-0.5`}>
+										{isCardio ? (
+											<span className="grid size-7 place-items-center rounded-md bg-mono-600 text-[10px] font-medium text-mono-100">
+												A{s.setNumber}
+											</span>
+										) : (
 										<button
 											type="button"
 											aria-label={`Set ${s.setNumber} type${s.setType ? `: ${s.setType}` : ""}`}
@@ -227,18 +248,40 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 												</span>
 											)}
 										</button>
-										<span
-											className="text-center text-xs text-mono-400"
-											aria-label={previousSets.get(`${s.exerciseId}:${s.setNumber}`)
-												? `Previous weight ${previousSets.get(`${s.exerciseId}:${s.setNumber}`)?.weight} pounds`
-												: "No previous set"}
-										>
-											{previousSets.get(`${s.exerciseId}:${s.setNumber}`)?.weight ?? "—"}
-										</span>
-										<Num label={`Set ${s.setNumber} weight`} hideLabel value={s.weight} onCommit={(v) => patch("sessionSets", s.id, { weight: v })} />
-										<Num label={`Set ${s.setNumber} reps`} hideLabel value={s.reps} onCommit={(v) => patch("sessionSets", s.id, { reps: Math.round(v) })} />
+										)}
+										{isCardio ? (
+											<>
+												<Num
+													label={`Activity ${s.setNumber} duration in minutes`}
+													hideLabel
+													value={s.durationMinutes ?? 0}
+													onCommit={(durationMinutes) => patch("sessionSets", s.id, { durationMinutes })}
+												/>
+												<Num
+													label={`Activity ${s.setNumber} distance in miles`}
+													hideLabel
+													step={0.1}
+													decimalPlaces={1}
+													value={s.distanceMiles ?? 0}
+													onCommit={(distanceMiles) => patch("sessionSets", s.id, { distanceMiles })}
+												/>
+											</>
+										) : (
+											<>
+												<span
+													className="text-center text-xs text-mono-400"
+													aria-label={previousSets.get(`${s.exerciseId}:${s.setNumber}`)
+														? `Previous weight ${previousSets.get(`${s.exerciseId}:${s.setNumber}`)?.weight} pounds`
+														: "No previous set"}
+												>
+													{previousSets.get(`${s.exerciseId}:${s.setNumber}`)?.weight ?? "—"}
+												</span>
+												<Num label={`Set ${s.setNumber} weight`} hideLabel value={s.weight} onCommit={(v) => patch("sessionSets", s.id, { weight: v })} />
+												<Num label={`Set ${s.setNumber} reps`} hideLabel value={s.reps} onCommit={(v) => patch("sessionSets", s.id, { reps: Math.round(v) })} />
+											</>
+										)}
 										<input
-											type="checkbox" className="size-5 justify-self-center accent-lavender-500" aria-label={`Set ${s.setNumber} done`}
+											type="checkbox" className="size-5 justify-self-center accent-lavender-500" aria-label={`${isCardio ? "Activity" : "Set"} ${s.setNumber} done`}
 											checked={s.done} onChange={(e) => patch("sessionSets", s.id, { done: e.target.checked })}
 										/>
 									</div>
@@ -247,11 +290,14 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 						))}
 					</ul>
 					<div className="mt-2 flex gap-2">
-						<button className={clsx(acceptanceBtn, "w-full text-base")} onClick={() => addSet(group)}>Add set</button>
+						<button className={clsx(acceptanceBtn, "w-full text-base")} onClick={() => addSet(group)}>
+							{isCardio ? "Add activity" : "Add set"}
+						</button>
 					</div>
 				</div>
 					</div>
-				))}
+					);
+				})}
         {
           session?.status !== "completed" &&
           <button
