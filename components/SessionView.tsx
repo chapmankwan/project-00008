@@ -19,7 +19,7 @@ import { acceptanceBtn, btn, baseBtn, Num, refusalBtn } from "./ui";
 import { SwipeToDelete } from "./swipe-to-delete";
 import clsx from "clsx";
 import { EllipsisVerticalIcon } from "@/app/icons";
-import { AddExercisesSheet, SettingSetTypeSheet } from "@/components";
+import { AddExercisesSheet, SettingSetTypeSheet, Sheet } from "@/components";
 
 export default function SessionView({ id, onBack }: { id: string; onBack: () => void }) {
 	const [setOptionsTarget, setSetOptionsTarget] = useState<SessionSet | null>(null);
@@ -72,6 +72,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 		await put("sessionSets", {
 			id: crypto.randomUUID(), sessionId: id, exerciseId: last.exerciseId, position: last.position,
 			setNumber: last.setNumber + 1, weight: last.weight, reps: last.reps, done: false,
+			setType: "normal",
 		});
 	}
 
@@ -212,12 +213,12 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 									label={`set ${s.setNumber} of ${names.get(s.exerciseId) ?? "exercise"}`}
 									onDelete={() => void deleteSet(group, s)}
 								>
-									<div className="grid grid-cols-[2rem_repeat(3,minmax(0,1fr))_2rem] items-end gap-2 p-0.5">
+									<div className="grid grid-cols-[2rem_repeat(3,minmax(0,1fr))_2rem] items-center gap-2 p-0.5">
 										<button
 											type="button"
 											aria-label={`Set ${s.setNumber} type${s.setType ? `: ${s.setType}` : ""}`}
 											onClick={() => setSetOptionsTarget(s)}
-											className="cursor-pointer mb-1 flex size-7 flex-col items-center justify-center rounded-md bg-mono-600 text-[10px] font-medium text-mono-100 hover:bg-mono-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
+											className="cursor-pointer flex size-7 flex-col items-center justify-center rounded-md bg-mono-600 text-[10px] font-medium text-mono-100 hover:bg-mono-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
 										>
 											{s.setType && s.setType === "normal" && s.setNumber}
 											{s.setType && s.setType !== "normal" && (
@@ -227,7 +228,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 											)}
 										</button>
 										<span
-											className="mb-3 text-center text-xs text-mono-400"
+											className="text-center text-xs text-mono-400"
 											aria-label={previousSets.get(`${s.exerciseId}:${s.setNumber}`)
 												? `Previous weight ${previousSets.get(`${s.exerciseId}:${s.setNumber}`)?.weight} pounds`
 												: "No previous set"}
@@ -237,7 +238,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 										<Num label={`Set ${s.setNumber} weight`} hideLabel value={s.weight} onCommit={(v) => patch("sessionSets", s.id, { weight: v })} />
 										<Num label={`Set ${s.setNumber} reps`} hideLabel value={s.reps} onCommit={(v) => patch("sessionSets", s.id, { reps: Math.round(v) })} />
 										<input
-											type="checkbox" className="mb-2 size-5 justify-self-center accent-lavender-500" aria-label={`Set ${s.setNumber} done`}
+											type="checkbox" className="size-5 justify-self-center accent-lavender-500" aria-label={`Set ${s.setNumber} done`}
 											checked={s.done} onChange={(e) => patch("sessionSets", s.id, { done: e.target.checked })}
 										/>
 									</div>
@@ -246,7 +247,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 						))}
 					</ul>
 					<div className="mt-2 flex gap-2">
-						<button className={clsx(btn, "w-full text-base")} onClick={() => addSet(group)}>Add set</button>
+						<button className={clsx(acceptanceBtn, "w-full text-base")} onClick={() => addSet(group)}>Add set</button>
 					</div>
 				</div>
 					</div>
@@ -272,34 +273,23 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 				/>
 			)}
 			{exerciseAction?.mode === "menu" && (
-				<div className="fixed inset-0 z-40 flex items-end bg-black/50" onClick={closeExerciseActions}>
-					<section
-						role="dialog"
-						aria-modal="true"
-						aria-labelledby="exercise-actions-title"
-						className="w-full space-y-3 rounded-t-2xl border-t border-mono-600 bg-mono-800 p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]"
-						onClick={(event) => event.stopPropagation()}
+				<Sheet title={"temp"} onClose={closeExerciseActions}>
+					<h3 id="exercise-actions-title" className="font-semibold">{names.get(exerciseAction.exerciseId) ?? "Exercise"}</h3>
+					<button
+						type="button"
+						className="cursor-pointer min-h-11 w-full rounded-lg bg-mono-800 px-4 text-left hover:bg-mono-600"
+						onClick={() => setExerciseAction({ ...exerciseAction, mode: "replace" })}
 					>
-						<div className="flex items-center justify-between">
-							<h3 id="exercise-actions-title" className="font-semibold">{names.get(exerciseAction.exerciseId) ?? "Exercise"}</h3>
-							<button type="button" className="text-base text-mono-300 underline" onClick={closeExerciseActions}>Cancel</button>
-						</div>
-						<button
-							type="button"
-							className="cursor-pointer min-h-11 w-full rounded-lg bg-mono-800 px-4 text-left hover:bg-mono-600"
-							onClick={() => setExerciseAction({ ...exerciseAction, mode: "replace" })}
-						>
-							Replace exercise
-						</button>
-						<button
-							type="button"
-							className="cursor-pointer min-h-11 w-full rounded-lg bg-blush-900/60 px-4 text-left text-blush-200 hover:bg-blush-900"
-							onClick={() => void removeExercise(exerciseAction.position)}
-						>
-							Remove from this workout
-						</button>
-					</section>
-				</div>
+						Replace exercise
+					</button>
+					<button
+						type="button"
+						className="cursor-pointer min-h-11 w-full rounded-lg bg-blush-900/60 px-4 text-left text-blush-200 hover:bg-blush-900"
+						onClick={() => void removeExercise(exerciseAction.position)}
+					>
+						Remove from this workout
+					</button>
+				</Sheet>
 			)}
 			{exerciseAction?.mode === "replace" && (
 				<AddExercisesSheet

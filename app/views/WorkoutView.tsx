@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, put } from "@/lib/db";
 import TemplateView from "@/components/TemplateView";
-import { field, btn, acceptanceBtn } from "@/components/ui";
+import { field, btn, acceptanceBtn, refusalBtn } from "@/components/ui";
 import clsx from "clsx";
 
 export const WorkoutView = ({ onBack, onStartSession }: {
@@ -113,7 +113,7 @@ export const WorkoutView = ({ onBack, onStartSession }: {
                 </ul>
             )}
 
-            <button type="button" className={clsx(btn, "w-full")} onClick={onBack}>
+            <button type="button" className={clsx(refusalBtn, "w-full")} onClick={onBack}>
                 Back to home
             </button>
         </section>

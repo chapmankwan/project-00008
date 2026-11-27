@@ -128,7 +128,7 @@ export default function TemplateView({ id, onBack, onStartSession }: {
 				</div>
                 <ul className="my-2 space-y-2">
                   {targetSets.map((target, index) => (
-                    <li key={`${en.id}-target-${index}`} className="grid grid-cols-[2.5rem_1fr_1fr] items-end gap-2">
+                    <li key={`${en.id}-target-${index}`} className="grid grid-cols-[2.5rem_1fr_1fr] items-center gap-2">
                       <button
                         type="button"
                         aria-label={`Set ${index + 1} type${target.setType ? `: ${target.setType}` : ""}`}
@@ -144,7 +144,7 @@ export default function TemplateView({ id, onBack, onStartSession }: {
                       </button>
                       <Num
                         label="Weight (lbs)"
-						hideLabel
+						            hideLabel
                         value={target.weight}
                         onCommit={(weight) => {
                           const next = [...targetSets];
@@ -154,7 +154,7 @@ export default function TemplateView({ id, onBack, onStartSession }: {
                       />
                       <Num
                         label="Target reps"
-						hideLabel
+						            hideLabel
                         value={target.reps}
                         onCommit={(reps) => {
                           const next = [...targetSets];
@@ -162,15 +162,6 @@ export default function TemplateView({ id, onBack, onStartSession }: {
                           void updateTargetSets(en, next);
                         }}
                       />
-                      {/* <button
-                        type="button"
-                        className="mb-1 min-h-11 px-2 text-base text-mono-400 underline disabled:opacity-40"
-                        aria-label={`Remove set ${index + 1}`}
-                        disabled={targetSets.length === 1}
-                        onClick={() => void updateTargetSets(en, targetSets.filter((_, targetIndex) => targetIndex !== index))}
-                      >
-                        Remove
-                      </button> */}
                     </li>
                   ))}
                 </ul>
