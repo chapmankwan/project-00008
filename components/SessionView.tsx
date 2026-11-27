@@ -14,21 +14,17 @@ import {
 	replaceSessionExercise,
 	type SessionSet,
 } from "@/lib/db";
-import { SET_TYPE_OPTIONS, SET_TYPE_SHORT_LABELS } from "@/lib/set-types";
+import { SET_TYPE_SHORT_LABELS } from "@/lib/set-types";
 import { acceptanceBtn, btn, baseBtn, Num, refusalBtn } from "./ui";
 import { SwipeToDelete } from "./swipe-to-delete";
 import clsx from "clsx";
 import { EllipsisVerticalIcon } from "@/app/icons";
+import { AddExercisesSheet, SettingSetTypeSheet } from "@/components";
 
 export default function SessionView({ id, onBack }: { id: string; onBack: () => void }) {
 	const [setOptionsTarget, setSetOptionsTarget] = useState<SessionSet | null>(null);
 	const [exerciseAction, setExerciseAction] = useState<{ position: number; exerciseId: string; mode: "menu" | "replace" } | null>(null);
-	const [replacementExerciseId, setReplacementExerciseId] = useState("");
-	const [updateRoutineToo, setUpdateRoutineToo] = useState(false);
-	const [exerciseSearch, setExerciseSearch] = useState("");
 	const [isAddingExercise, setIsAddingExercise] = useState(false);
-	const [newExerciseId, setNewExerciseId] = useState("");
-	const [addToRoutine, setAddToRoutine] = useState(false);
 	const [now, setNow] = useState(() => Date.now());
 	const session = useLiveQuery(() => db.sessions.get(id), [id]);
 	const sets = useLiveQuery(() => db.sessionSets.where("sessionId").equals(id).toArray(), [id], []);
@@ -102,14 +98,10 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 
 	async function changeSetType(set: SessionSet, setType: NonNullable<SessionSet["setType"]>) {
 		await patch("sessionSets", set.id, { setType });
-		setSetOptionsTarget(null);
 	}
 
 	function closeExerciseActions() {
 		setExerciseAction(null);
-		setReplacementExerciseId("");
-		setUpdateRoutineToo(false);
-		setExerciseSearch("");
 	}
 
 	async function removeExercise(position: number) {
@@ -118,29 +110,21 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 		closeExerciseActions();
 	}
 
-	async function confirmExerciseReplacement() {
-		if (!exerciseAction || !replacementExerciseId) return;
+	async function replaceExerciseWithSelection(exerciseIds: string[], updateRoutine: boolean) {
+		if (!exerciseAction || !exerciseIds[0]) return;
 		await replaceSessionExercise(
 			id,
 			exerciseAction.position,
 			exerciseAction.exerciseId,
-			replacementExerciseId,
-			updateRoutineToo,
+			exerciseIds[0],
+			updateRoutine,
 		);
-		closeExerciseActions();
 	}
 
-	function closeAddExercise() {
-		setIsAddingExercise(false);
-		setNewExerciseId("");
-		setAddToRoutine(false);
-		setExerciseSearch("");
-	}
-
-	async function confirmAddExercise() {
-		if (!newExerciseId) return;
-		await addExerciseToSession(id, newExerciseId, addToRoutine);
-		closeAddExercise();
+	async function addExercisesToSession(exerciseIds: string[], addToRoutine: boolean) {
+		for (const exerciseId of exerciseIds) {
+			await addExerciseToSession(id, exerciseId, addToRoutine);
+		}
 	}
 
 	return (
@@ -163,7 +147,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 					{session && <p className="text-xs text-slate-400">{new Date(session.startedAt).toLocaleDateString()}</p>}
 				</div>
 				<div className="flex gap-2">
-					<button className={clsx(acceptanceBtn, "text-sm")} onClick={completeSession}>Finish</button>
+					<button className={clsx(acceptanceBtn, "text-base")} onClick={completeSession}>Finish</button>
 					<button
 						type="button"
 						aria-label="Delete workout"
@@ -262,7 +246,7 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 						))}
 					</ul>
 					<div className="mt-2 flex gap-2">
-						<button className={clsx(btn, "w-full text-sm")} onClick={() => addSet(group)}>Add set</button>
+						<button className={clsx(btn, "w-full text-base")} onClick={() => addSet(group)}>Add set</button>
 					</div>
 				</div>
 					</div>
@@ -281,160 +265,62 @@ export default function SessionView({ id, onBack }: { id: string; onBack: () => 
 			</div>
 			{/* This is temporary, we can use a generic sheet for content after */}
 			{setOptionsTarget && (
-				<div className="fixed inset-0 z-40 flex items-end bg-black/50" onClick={() => setSetOptionsTarget(null)}>
-					<section
-						role="dialog"
-						aria-modal="true"
-						aria-labelledby="set-type-title"
-						className="w-full space-y-2 rounded-t-2xl border-t border-mono-600 bg-mono-800 p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]"
-						onClick={(event) => event.stopPropagation()}
-					>
-						<div className="mb-3 flex items-center justify-between">
-							<h3 id="set-type-title" className="font-semibold">Set {setOptionsTarget.setNumber} type</h3>
-							<button type="button" className="text-sm text-mono-300 underline" onClick={() => setSetOptionsTarget(null)}>Cancel</button>
-						</div>
-						{SET_TYPE_OPTIONS.map((option) => (
-							<button
-								key={option.value}
-								type="button"
-								className="min-h-11 w-full rounded-lg bg-mono-800 px-4 text-left hover:bg-mono-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
-								onClick={() => void changeSetType(setOptionsTarget, option.value)}
-							>
-								{option.label}
-							</button>
-						))}
-					</section>
-				</div>
+				<SettingSetTypeSheet
+					title={`Set ${setOptionsTarget.setNumber} type`}
+					onClose={() => setSetOptionsTarget(null)}
+					onSelect={(setType) => changeSetType(setOptionsTarget, setType)}
+				/>
 			)}
-			{exerciseAction && (
+			{exerciseAction?.mode === "menu" && (
 				<div className="fixed inset-0 z-40 flex items-end bg-black/50" onClick={closeExerciseActions}>
 					<section
 						role="dialog"
 						aria-modal="true"
 						aria-labelledby="exercise-actions-title"
-						className="max-h-[85dvh] w-full space-y-3 overflow-y-auto rounded-t-2xl border-t border-mono-600 bg-mono-800 p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]"
+						className="w-full space-y-3 rounded-t-2xl border-t border-mono-600 bg-mono-800 p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]"
 						onClick={(event) => event.stopPropagation()}
 					>
 						<div className="flex items-center justify-between">
-							<h3 id="exercise-actions-title" className="font-semibold">
-								{exerciseAction.mode === "menu" ? names.get(exerciseAction.exerciseId) ?? "Exercise" : "Replace exercise"}
-							</h3>
-							<button type="button" className="text-sm text-mono-300 underline" onClick={closeExerciseActions}>Cancel</button>
+							<h3 id="exercise-actions-title" className="font-semibold">{names.get(exerciseAction.exerciseId) ?? "Exercise"}</h3>
+							<button type="button" className="text-base text-mono-300 underline" onClick={closeExerciseActions}>Cancel</button>
 						</div>
-						{exerciseAction.mode === "menu" ? (
-							<>
-								<button
-									type="button"
-									className="cursor-pointer min-h-11 w-full rounded-lg bg-mono-800 px-4 text-left hover:bg-mono-600"
-									onClick={() => setExerciseAction({ ...exerciseAction, mode: "replace" })}
-								>
-									Replace exercise
-								</button>
-								<button
-									type="button"
-									className="cursor-pointer min-h-11 w-full rounded-lg bg-blush-900/60 px-4 text-left text-blush-200 hover:bg-blush-900"
-									onClick={() => void removeExercise(exerciseAction.position)}
-								>
-									Remove from this workout
-								</button>
-							</>
-						) : (
-							<>
-								<input
-									type="search"
-									value={exerciseSearch}
-									onChange={(event) => setExerciseSearch(event.target.value)}
-									placeholder="Search exercises"
-									className="min-h-11 w-full rounded-lg border border-mono-600 bg-mono-900 px-3 text-mono-100 focus:outline-none focus:border-blush-500"
-								/>
-								<ul className="max-h-56 space-y-1 overflow-y-auto">
-									{exercises
-										.filter((exercise) => exercise.id !== exerciseAction.exerciseId)
-										.filter((exercise) => `${exercise.name} ${exercise.muscle}`.toLocaleLowerCase().includes(exerciseSearch.trim().toLocaleLowerCase()))
-										.map((exercise) => (
-											<li key={exercise.id}>
-												<button
-													type="button"
-													aria-pressed={replacementExerciseId === exercise.id}
-													className={clsx("cursor-pointer min-h-11 w-full rounded-lg px-3 text-left", replacementExerciseId === exercise.id ? "bg-lavender-700" : "bg-mono-700 hover:bg-mono-600")}
-													onClick={() => setReplacementExerciseId(exercise.id)}
-												>
-													{exercise.name} <span className="text-xs text-mono-300">({exercise.muscle})</span>
-												</button>
-											</li>
-										))}
-								</ul>
-								{session?.templateId && (
-									<label className="flex items-start gap-3 rounded-lg bg-mono-800 p-3 text-sm">
-										<input type="checkbox" checked={updateRoutineToo} onChange={(event) => setUpdateRoutineToo(event.target.checked)} className="mt-1 size-4 accent-lavender-400" />
-										<span>Also use this exercise in future workouts from this routine</span>
-									</label>
-								)}
-								<button
-									type="button"
-									disabled={!replacementExerciseId}
-									className={clsx(acceptanceBtn, "w-full disabled:cursor-not-allowed disabled:opacity-50")}
-									onClick={() => void confirmExerciseReplacement()}
-								>
-									Replace exercise
-								</button>
-							</>
-						)}
-					</section>
-				</div>
-			)}
-			{isAddingExercise && (
-				<div className="fixed inset-0 z-40 flex items-end bg-black/50" onClick={closeAddExercise}>
-					<section
-						role="dialog"
-						aria-modal="true"
-						aria-labelledby="add-session-exercise-title"
-						className="max-h-[85dvh] w-full space-y-3 overflow-y-auto rounded-t-2xl border-t border-mono-600 bg-mono-800 p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]"
-						onClick={(event) => event.stopPropagation()}
-					>
-						<div className="flex items-center justify-between">
-							<h3 id="add-session-exercise-title" className="font-semibold">Add exercise</h3>
-							<button type="button" className="cursor-pointer text-sm text-mono-300 underline" onClick={closeAddExercise}>Cancel</button>
-						</div>
-						<input
-							type="search"
-							value={exerciseSearch}
-							onChange={(event) => setExerciseSearch(event.target.value)}
-							placeholder="Search exercises"
-							className="min-h-11 w-full rounded-lg border border-mono-600 bg-mono-900 px-3 text-mono-100 focus:outline-none focus:border-blush-500"
-						/>
-						<ul className="max-h-56 space-y-1 overflow-y-auto">
-							{exercises
-								.filter((exercise) => `${exercise.name} ${exercise.muscle}`.toLocaleLowerCase().includes(exerciseSearch.trim().toLocaleLowerCase()))
-								.map((exercise) => (
-									<li key={exercise.id}>
-										<button
-											type="button"
-											aria-pressed={newExerciseId === exercise.id}
-											className={clsx("min-h-11 w-full rounded-lg px-3 text-left", newExerciseId === exercise.id ? "bg-lavender-700" : "bg-mono-700 hover:bg-mono-600")}
-											onClick={() => setNewExerciseId(exercise.id)}
-										>
-											{exercise.name} <span className="text-xs text-mono-300">({exercise.muscle})</span>
-										</button>
-									</li>
-								))}
-						</ul>
-						{session?.templateId && (
-							<label className="flex items-start gap-3 rounded-lg bg-mono-700 p-3 text-sm">
-								<input type="checkbox" checked={addToRoutine} onChange={(event) => setAddToRoutine(event.target.checked)} className="mt-1 size-4 accent-lavender-400" />
-								<span>Also add to this routine for future workouts</span>
-							</label>
-						)}
 						<button
 							type="button"
-							disabled={!newExerciseId}
-							className={clsx(acceptanceBtn, "w-full disabled:cursor-not-allowed disabled:opacity-50")}
-							onClick={() => void confirmAddExercise()}
+							className="cursor-pointer min-h-11 w-full rounded-lg bg-mono-800 px-4 text-left hover:bg-mono-600"
+							onClick={() => setExerciseAction({ ...exerciseAction, mode: "replace" })}
 						>
-							Add exercise
+							Replace exercise
+						</button>
+						<button
+							type="button"
+							className="cursor-pointer min-h-11 w-full rounded-lg bg-blush-900/60 px-4 text-left text-blush-200 hover:bg-blush-900"
+							onClick={() => void removeExercise(exerciseAction.position)}
+						>
+							Remove from this workout
 						</button>
 					</section>
 				</div>
+			)}
+			{exerciseAction?.mode === "replace" && (
+				<AddExercisesSheet
+					title="Replace exercise"
+					submitLabel="Replace"
+					singleSelect
+					excludeIds={[exerciseAction.exerciseId]}
+					routineOption={Boolean(session?.templateId)}
+					routineOptionLabel="Also use this exercise in future workouts from this routine"
+					onClose={closeExerciseActions}
+					onSubmit={replaceExerciseWithSelection}
+					data={exercises}
+				/>
+			)}
+			{isAddingExercise && (
+				<AddExercisesSheet
+					onClose={() => setIsAddingExercise(false)}
+					onSubmit={addExercisesToSession}
+					data={exercises}
+					routineOption={Boolean(session?.templateId)}
+				/>
 			)}
 		</section>
 	);

@@ -51,7 +51,7 @@ export const WorkoutView = ({ onBack, onStartSession }: {
         <section className="space-y-5 px-1">
             <header>
                 <h2 className="text-lg font-semibold">Routines</h2>
-                <p className="mt-1 text-sm text-mono-300">Create a routine and choose the exercises you want to train.</p>
+                <p className="mt-1 text-base text-mono-300">Create a routine and choose the exercises you want to train.</p>
             </header>
 
             <button className={btn} onClick={onClickEmptyRoutine}>
@@ -75,7 +75,7 @@ export const WorkoutView = ({ onBack, onStartSession }: {
             {templates.length === 0 ? (
                 <div className="rounded-2xl border border-mono-500/30 bg-mono-700/60 p-5 text-center">
                     <p className="font-medium">No routines yet</p>
-                    <p className="mt-1 text-sm text-mono-300">Create your first routine above, then add exercises.</p>
+                    <p className="mt-1 text-base text-mono-300">Create your first routine above, then add exercises.</p>
                 </div>
             ) : (
                 <ul className="space-y-3">

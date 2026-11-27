@@ -39,7 +39,7 @@ export default function WorkoutApp() {
     <main className="mx-auto max-w-md p-4 pb-24">
       <header className="flex items-center justify-between py-2">
         <h1 className="text-xl font-semibold">Workouts</h1>
-        <p role="status" className="text-sm text-slate-400">
+        <p role="status" className="text-base text-slate-400">
           {online ? "Online" : "Offline"}, {pending} unsynced
         </p>
       </header>

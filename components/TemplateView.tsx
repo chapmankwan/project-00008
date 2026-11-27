@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, patch, putMany, remove, startSession, type TemplateExercise, type TemplateTargetSet } from "@/lib/db";
-import { SET_TYPE_OPTIONS, SET_TYPE_SHORT_LABELS, type SetType } from "@/lib/set-types";
+import { SET_TYPE_SHORT_LABELS, type SetType } from "@/lib/set-types";
 import { Num, baseBtn } from "./ui";
-import { Sheet } from "./sheet";
+import { AddExercisesSheet, SettingSetTypeSheet } from "@/components";
 
 import clsx from "clsx";
 import { EllipsisVerticalIcon } from "@/app/icons";
@@ -133,7 +133,7 @@ export default function TemplateView({ id, onBack, onStartSession }: {
                         type="button"
                         aria-label={`Set ${index + 1} type${target.setType ? `: ${target.setType}` : ""}`}
                         onClick={() => setSetTypeTarget({ entryId: en.id, setIndex: index })}
-                        className="mb-1 flex min-h-10 flex-col items-center justify-center rounded-lg bg-mono-600 text-sm font-medium text-mono-100 hover:bg-mono-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
+                        className="mb-1 flex min-h-10 flex-col items-center justify-center rounded-lg bg-mono-600 text-base font-medium text-mono-100 hover:bg-mono-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
                       >
                         {index + 1}
                         {target.setType && target.setType !== "normal" && (
@@ -164,7 +164,7 @@ export default function TemplateView({ id, onBack, onStartSession }: {
                       />
                       {/* <button
                         type="button"
-                        className="mb-1 min-h-11 px-2 text-sm text-mono-400 underline disabled:opacity-40"
+                        className="mb-1 min-h-11 px-2 text-base text-mono-400 underline disabled:opacity-40"
                         aria-label={`Remove set ${index + 1}`}
                         disabled={targetSets.length === 1}
                         onClick={() => void updateTargetSets(en, targetSets.filter((_, targetIndex) => targetIndex !== index))}
@@ -188,7 +188,7 @@ export default function TemplateView({ id, onBack, onStartSession }: {
       </div>
 
       {isSheetOpen && (
-        <Sheet
+        <AddExercisesSheet
           onClose={() => setIsSheetOpen(false)}
           onSubmit={addSelectedExercises}
           data={exercises}
@@ -196,32 +196,11 @@ export default function TemplateView({ id, onBack, onStartSession }: {
       )}
 
       {setTypeTarget && (
-        <div className="fixed inset-0 z-40 flex items-end bg-black/50" onClick={() => setSetTypeTarget(null)}>
-          <section
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="template-set-type-title"
-            className="w-full space-y-2 rounded-t-2xl border-t border-mono-600 bg-mono-800 p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="mb-3 flex items-center justify-between">
-              <h3 id="template-set-type-title" className="font-semibold">
-                Set {setTypeTarget.setIndex + 1} type
-              </h3>
-              <button type="button" className="text-sm text-mono-300 underline" onClick={() => setSetTypeTarget(null)}>Cancel</button>
-            </div>
-            {SET_TYPE_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className="min-h-11 w-full rounded-lg bg-mono-700 px-4 text-left hover:bg-mono-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lavender-300"
-                onClick={() => void updateSetType(option.value)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </section>
-        </div>
+        <SettingSetTypeSheet
+          title={`Set ${setTypeTarget.setIndex + 1} type`}
+          onClose={() => setSetTypeTarget(null)}
+          onSelect={updateSetType}
+        />
       )}
 
     </section>
